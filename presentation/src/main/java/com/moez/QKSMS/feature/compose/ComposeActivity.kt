@@ -40,6 +40,7 @@ import android.view.ContextMenu
 import android.view.DragEvent.ACTION_DRAG_ENDED
 import android.view.DragEvent.ACTION_DRAG_EXITED
 import android.view.DragEvent.ACTION_DROP
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -843,6 +844,20 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     }
 
     override fun onBackPressed() = backPressedIntent.onNext(Unit)
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle D-pad center/enter key as click for better flip phone support
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                val focusedView = currentFocus
+                if (focusedView != null && focusedView.isClickable) {
+                    focusedView.performClick()
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 
     override fun focusMessage() {
         message.requestFocus()

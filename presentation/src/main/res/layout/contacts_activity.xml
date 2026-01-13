@@ -35,6 +35,8 @@
         android:clipToPadding="false"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -73,6 +75,9 @@
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:textColorHint="?android:attr/textColorTertiary"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusDown="@+id/contacts"
                 app:textSize="primary"
                 tools:textSize="16sp" />
 
@@ -106,6 +111,9 @@
                 android:padding="8dp"
                 android:src="@drawable/ic_cancel_black_24dp"
                 android:visibility="gone"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
                 app:tint="?android:attr/textColorSecondary" />
 
         </FrameLayout>
