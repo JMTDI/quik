@@ -62,6 +62,8 @@
                 app:textSize="primary"
                 tools:textSize="16sp"
                 android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusDown="@+id/recyclerView"
                 android:nextFocusRight="@+id/compose" />
         </androidx.appcompat.widget.Toolbar>
 
@@ -86,6 +88,8 @@
             android:clipToPadding="false"
             android:paddingTop="8dp"
             android:paddingBottom="8dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@id/bottom"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
@@ -101,6 +105,9 @@
             android:elevation="8dp"
             android:padding="16dp"
             android:src="@drawable/ic_add_black_24dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusLeft="@+id/recyclerView"
             app:layout_constraintBottom_toTopOf="@id/bottom"
             app:layout_constraintEnd_toEndOf="parent"
             tools:backgroundTint="@color/tools_theme"
