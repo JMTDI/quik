@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (C) 2024 QUIK Contributors
+  ~
+  ~ This file is part of QKSMS.
+  ~
+  ~ QKSMS is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ QKSMS is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+<resources>
+    <!-- Small screen optimizations for flip phones and small devices -->
+    
+    <!-- Text sizes scaled down for small screens -->
+    <dimen name="text_size_primary">14sp</dimen>
+    <dimen name="text_size_secondary">12sp</dimen>
+    <dimen name="text_size_tertiary">10sp</dimen>
+    <dimen name="text_size_toolbar">16sp</dimen>
+    
+    <!-- Toolbar height reduced for small screens -->
+    <dimen name="toolbar_height">48dp</dimen>
+    
+    <!-- Avatar sizes reduced for small screens -->
+    <dimen name="avatar_size_small">40dp</dimen>
+    <dimen name="avatar_size_normal">48dp</dimen>
+    
+    <!-- FAB size reduced for small screens -->
+    <dimen name="fab_size">48dp</dimen>
+    
+    <!-- Padding and margins scaled down -->
+    <dimen name="margin_small">4dp</dimen>
+    <dimen name="margin_medium">8dp</dimen>
+    <dimen name="margin_large">12dp</dimen>
+    
+    <!-- Touch target sizes for D-pad navigation -->
+    <dimen name="touch_target_min">40dp</dimen>
+    
+    <!-- Message bubble sizes -->
+    <dimen name="message_text_size">13sp</dimen>
+    <dimen name="message_padding">8dp</dimen>
+</resources>
