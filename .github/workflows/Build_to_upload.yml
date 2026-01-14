@@ -1,0 +1,69 @@
+name: Build the Project
+
+on: 
+  workflow_dispatch:  # Manual trigger only - run from GitHub Actions UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # setup
+    - name: Checkout project sources
+      uses: actions/checkout@v5
+    - name: Setup Java
+      uses: actions/setup-java@v5
+      with: 
+        distribution: temurin
+        java-version: 17
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v3
+
+    # signing configuration
+    - name: Setup signing configuration
+      shell: bash
+      env:
+        KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets. ANDROID_KEY_PASSWORD }}
+      run: |
+        set -euo pipefail
+        missing=0
+        for var in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+          if [[ -z "${!var:-}" ]]; then
+            echo ":: error title=Missing secret::${var} is not set."
+            missing=1
+          fi
+        done
+        if [[ "$missing" -ne 0 ]]; then
+          exit 1
+        fi
+
+        mkdir -p presentation
+        echo "$KEYSTORE_B64" | base64 -d > presentation/my-release-key. keystore
+        chmod 600 presentation/my-release-key. keystore
+
+        {
+          echo "keystore_password=$KEYSTORE_PASSWORD"
+          echo "key_alias=$KEY_ALIAS"
+          echo "key_password=$KEY_PASSWORD"
+        } >> "$GITHUB_ENV"
+
+    # validate and build
+    - name:  Validate Gradle Wrapper
+      uses:  gradle/wrapper-validation-action@v1
+    - name: Build Release APK
+      run: ./gradlew clean assembleRelease
+    
+    # Upload APK as artifact
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: quik-release
+        path: presentation/build/outputs/apk/release/*. apk
+        retention-days:  30
+
+    # cleanup
+    - name: Cleanup signing key
+      if: always()
+      run: rm -f presentation/my-release-key.keystore
