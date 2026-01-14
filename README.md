@@ -2,7 +2,7 @@
 
 # QUIK
 
-[![Manual Release](https://github.com/octoshrimpy/quik/actions/workflows/manual-release.yml/badge.svg)](https://github.com/octoshrimpy/quik/actions/workflows/manual-release.yml) ![GitHub Downloads (latest release)](https://img.shields.io/github/downloads/JMTDI/tt9/latest/total)
+[![Manual Release](https://github.com/octoshrimpy/quik/actions/workflows/manual-release.yml/badge.svg)](https://github.com/octoshrimpy/quik/actions/workflows/manual-release.yml) ![GitHub Downloads (latest release)](https://img.shields.io/github/downloads/JMTDI/quik/latest/total)
 <a href="https://hosted.weblate.org/engage/quik/">
 <img src="https://hosted.weblate.org/widget/quik/svg-badge.svg" alt="Translation status" />
 </a>
