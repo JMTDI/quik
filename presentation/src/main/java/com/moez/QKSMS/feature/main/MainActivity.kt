@@ -501,8 +501,8 @@ class MainActivity : QkThemedActivity(), MainView {
                     return true
                 }
             }
-            KeyEvent.KEYCODE_MENU -> {
-                // Open drawer when menu key is pressed
+            KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_SOFT_LEFT -> {
+                // Open drawer when menu key or left soft key is pressed
                 if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     drawerLayout.openDrawer(GravityCompat.START)
                     return true
