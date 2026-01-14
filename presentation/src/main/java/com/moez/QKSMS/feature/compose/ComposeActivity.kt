@@ -33,13 +33,8 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.provider.ContactsContract
 import android.provider.MediaStore
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
 import android.text.format.DateFormat
 import android.view.ContextMenu
-import android.view.DragEvent.ACTION_DRAG_ENDED
-import android.view.DragEvent.ACTION_DRAG_EXITED
-import android.view.DragEvent.ACTION_DROP
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -215,10 +210,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
             .subscribeOn(Schedulers.single())
             .observeOn(AndroidSchedulers.mainThread())
             .autoDisposable(scope())
-    }
-
-    private fun isSpeechRecognitionAvailable(): Boolean {
-        return SpeechRecognizer.isRecognitionAvailable(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -614,19 +605,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         startActivityForResult(intent, ComposeView.SELECT_CONTACT_REQUEST_CODE)
     }
 
-    override fun startSpeechRecognition() {
-        if (isSpeechRecognitionAvailable()) {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            }
-            try {
-                startActivityForResult(intent, ComposeView.SPEECH_RECOGNITION_REQUEST_CODE)
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(this, getString(R.string.error_stt_toast), Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     override fun themeChanged() {
         messageList.scrapViews()
     }
@@ -752,21 +730,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
             ComposeView.ATTACH_CONTACT_REQUEST_CODE -> {
                 data?.data?.let(contactSelectedIntent::onNext)
-            }
-
-            ComposeView.SPEECH_RECOGNITION_REQUEST_CODE -> {
-                // check returned results are good
-                val match = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                if ((match !== null) && (match.size > 0) && (!match[0].isNullOrEmpty())) {
-                    // get the edit text view
-                    val messageEditBox = findViewById<QkEditText>(R.id.message)
-                    if (messageEditBox !== null) {
-                        // populate message box with data returned by STT, set cursor to end, and focus
-                        messageEditBox.append(match[0])
-                        messageEditBox.setSelection(messageEditBox.text?.length ?: 0)
-                        messageEditBox.requestFocus()
-                    }
-                }
             }
 
             else -> super.onActivityResult(requestCode, resultCode, data)
