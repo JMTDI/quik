@@ -77,7 +77,6 @@ interface ComposeView : QkView<ComposeState> {
     val confirmDeleteIntent: Observable<List<Long>>
     val clearCurrentMessageIntent: Subject<Boolean>
     val messageLinkAskIntent: Observable<Uri>
-    val speechRecogniserIntent: Observable<*>
     val shadeIntent: Observable<Unit>
     val recordAudioStartStopRecording: Subject<Boolean>
     val recordAnAudioMessage: Observable<Unit>

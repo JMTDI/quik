@@ -134,9 +134,6 @@ import kotlinx.android.synthetic.main.compose_activity.sendAsGroupSwitch
 import kotlinx.android.synthetic.main.compose_activity.shadeBackground
 import kotlinx.android.synthetic.main.compose_activity.sim
 import kotlinx.android.synthetic.main.compose_activity.simIndex
-import kotlinx.android.synthetic.main.compose_activity.speechToTextFrame
-import kotlinx.android.synthetic.main.compose_activity.speechToTextIcon
-import kotlinx.android.synthetic.main.compose_activity.speechToTextIconBorder
 import kotlinx.android.synthetic.main.compose_activity.toolbarSubtitle
 import kotlinx.android.synthetic.main.compose_activity.toolbarTitle
 import kotlinx.android.synthetic.main.main_activity.toolbar
@@ -190,8 +187,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val backPressedIntent: Subject<Unit> = PublishSubject.create()
     override val confirmDeleteIntent: Subject<List<Long>> = PublishSubject.create()
     override val clearCurrentMessageIntent: Subject<Boolean> = PublishSubject.create()
-    override val messageLinkAskIntent: Subject<Uri> by lazy { messageAdapter.messageLinkClicks }
-    override val speechRecogniserIntent by lazy { speechToTextIcon.clicks() }
     override val shadeIntent by lazy { shadeBackground.clicks() }
     override val recordAudioStartStopRecording: Subject<Boolean> = PublishSubject.create()
     override val recordAnAudioMessage: Observable<Unit> by lazy {
@@ -269,11 +264,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                     camera.setBackgroundTint(it.theme); camera.setTint(it.textPrimary)
                     cameraLabel.setBackgroundTint(it.theme); cameraLabel.setTint(it.textPrimary)
 
-                    // speech to text floating button
-                    speechToTextIconBorder.setBackgroundTint(it.theme)
-                    speechToTextIcon.setBackgroundTint(it.textPrimary)
-                    speechToTextIcon.setTint(it.theme)
-
                     // audio message recording
                     audioMsgRecord.setColor(it.theme)
                     audioMsgPlayerPlayPause.setTint(it.theme)
@@ -293,33 +283,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                 .mapNotNull { it }
                 .autoDisposable(scope())
                 .subscribe { registerForContextMenu(it) }
-
-            // drag drop handlers for speech-to-text icon
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                speechToTextIcon.setOnLongClickListener {
-                    it.startDragAndDrop(null, View.DragShadowBuilder(speechToTextFrame), null, 0)
-                    speechToTextFrame.isVisible = false
-
-                    contentView.setOnDragListener { _, event ->
-                        when (event.action) {
-                            ACTION_DROP -> {
-                                speechToTextFrame.x = (event.x - (speechToTextFrame.width / 2))
-                                speechToTextFrame.y = (event.y - (speechToTextFrame.height / 2))
-
-                                // get offset from root view as a percentage of root view for saving
-                                prefs.showSttOffsetX.set((speechToTextFrame.x - contentView.x) / contentView.width)
-                                prefs.showSttOffsetY.set((speechToTextFrame.y - contentView.y) / contentView.height)
-                            }
-
-                            ACTION_DRAG_ENDED, ACTION_DRAG_EXITED -> {
-                                speechToTextFrame.isVisible = true
-                            }
-                        }
-                        true
-                    }
-                    true
-                }
-            }
 
             // start/stop audio message recording
             audioMsgRecord.setOnClickListener {
@@ -419,16 +382,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override fun onStart() {
         super.onStart()
         activityVisibleIntent.onNext(true)
-
-        // if first time stt icon is shown (since setting reset), pop up an instruction toast
-        if (prefs.showStt.get() &&
-            (prefs.showSttOffsetX.get() == Float.MIN_VALUE) &&
-            (prefs.showSttOffsetX.get() == Float.MIN_VALUE)) {
-            makeToast(R.string.compose_toast_drag_stt, Toast.LENGTH_LONG)
-            // reset to new flag value that indicates 'not first time through, but not customised'
-            prefs.showSttOffsetX.set(Float.MAX_VALUE)
-            prefs.showSttOffsetY.set(Float.MAX_VALUE)
-        }
     }
 
     override fun onPause() {
@@ -571,20 +524,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         // if scheduling mode is set, show schedule dialog
         if (state.scheduling)
             scheduleAction.onNext(true)
-
-        // if stt is available and preference is set to show stt button
-        if (isSpeechRecognitionAvailable() && prefs.showStt.get()) {
-            speechToTextFrame.isVisible = true
-
-            val xPercent = prefs.showSttOffsetX.get()
-            val yPercent = prefs.showSttOffsetY.get()
-
-            // if the stt icon has a custom position, move it
-            if ((xPercent != Float.MAX_VALUE) && (yPercent != Float.MAX_VALUE)) {
-                speechToTextFrame.x = (contentView.x + (xPercent * contentView.width))
-                speechToTextFrame.y = (contentView.y + (yPercent * contentView.height))
-            }
-        }
     }
 
     override fun clearSelection() = messageAdapter.clearSelection()
