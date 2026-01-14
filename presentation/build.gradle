@@ -103,7 +103,7 @@ android {
     if (System.getenv("CI") == "true") {
         signingConfigs.release.storePassword = System.getenv("keystore_password")
         def envKeyAlias = System.getenv("key_alias")
-        if (envKeyAlias != null && !envKeyAlias.isEmpty()) {
+        if (envKeyAlias?.trim()) {
             signingConfigs.release.keyAlias = envKeyAlias
         }
         signingConfigs.release.keyPassword = System.getenv("key_password")
