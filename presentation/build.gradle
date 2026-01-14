@@ -102,7 +102,10 @@ android {
     }
     if (System.getenv("CI") == "true") {
         signingConfigs.release.storePassword = System.getenv("keystore_password")
-        signingConfigs.release.keyAlias = System.getenv("key_alias")
+        def envKeyAlias = System.getenv("key_alias")
+        if (envKeyAlias != null && !envKeyAlias.isEmpty()) {
+            signingConfigs.release.keyAlias = envKeyAlias
+        }
         signingConfigs.release.keyPassword = System.getenv("key_password")
     }
 }
