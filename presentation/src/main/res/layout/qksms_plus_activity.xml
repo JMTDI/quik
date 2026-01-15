@@ -30,6 +30,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -70,6 +72,8 @@
                     android:layout_marginTop="16dp"
                     android:background="@drawable/rounded_rectangle_2dp"
                     android:text="@string/qksms_plus_upgrade"
+                    android:focusable="true"
+                    android:clickable="true"
                     app:textColor="primaryOnTheme"
                     tools:backgroundTint="@color/tools_theme" />
 
@@ -81,6 +85,8 @@
                     android:backgroundTint="?android:attr/divider"
                     android:text="@string/qksms_plus_upgrade_donate"
                     android:textColor="?android:attr/textColorPrimary"
+                    android:focusable="true"
+                    android:clickable="true"
                     tools:backgroundTint="@color/separatorLight" />
 
             </LinearLayout>
@@ -152,6 +158,8 @@
                     android:layout_marginTop="16dp"
                     android:background="@drawable/rounded_rectangle_2dp"
                     android:text="@string/qksms_plus_donate"
+                    android:focusable="true"
+                    android:clickable="true"
                     app:textColor="primaryOnTheme"
                     tools:backgroundTint="@color/tools_theme" />
 
