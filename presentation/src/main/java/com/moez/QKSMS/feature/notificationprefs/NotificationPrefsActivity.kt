@@ -24,6 +24,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
@@ -144,6 +145,20 @@ class NotificationPrefsActivity : QkThemedActivity(), NotificationPrefsView {
             val uri: Uri? = data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
             ringtoneSelectedIntent.onNext(uri?.toString() ?: "")
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle D-pad center/enter key as click for better D-pad support
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                val focusedView = currentFocus
+                if (focusedView != null && focusedView.isClickable) {
+                    focusedView.performClick()
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
 }

@@ -21,6 +21,7 @@ package dev.octoshrimpy.quik.feature.contacts
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProviders
@@ -126,6 +127,20 @@ class ContactsActivity : QkThemedActivity(), ContactsContract {
         val intent = Intent().putExtra(CHIPS_KEY, result)
         setResult(Activity.RESULT_OK, intent)
         finish()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle D-pad center/enter key as click for better D-pad support
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                val focusedView = currentFocus
+                if (focusedView != null && focusedView.isClickable) {
+                    focusedView.performClick()
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
 }

@@ -20,6 +20,7 @@ package dev.octoshrimpy.quik.feature.gallery
 
 import android.Manifest
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatDelegate
@@ -122,6 +123,20 @@ class GalleryActivity : QkActivity(), GalleryView {
     override fun onDestroy() {
         super.onDestroy()
         pagerAdapter.destroy()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle D-pad center/enter key as click for better D-pad support
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                val focusedView = currentFocus
+                if (focusedView != null && focusedView.isClickable) {
+                    focusedView.performClick()
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
 }

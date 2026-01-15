@@ -316,6 +316,10 @@ class MainActivity : QkThemedActivity(), MainView {
         inbox.isActivated = state.page is Inbox
         archived.isActivated = state.page is Archived
 
+        // Update focus navigation based on whether empty view is visible
+        // This must happen after adapter data updates which control empty view visibility
+        toolbarSearch.nextFocusDownId = if (empty.isVisible) R.id.empty else R.id.recyclerView
+
         if (drawerLayout.isDrawerOpen(GravityCompat.START) && !state.drawerOpen)
             drawerLayout.closeDrawer(GravityCompat.START)
         else if (!drawerLayout.isDrawerVisible(GravityCompat.START) && state.drawerOpen)
@@ -502,11 +506,13 @@ class MainActivity : QkThemedActivity(), MainView {
                 }
             }
             KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_SOFT_LEFT -> {
-                // Open drawer when menu key or left soft key is pressed
-                if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                // Toggle drawer when menu key or left soft key is pressed
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
                     drawerLayout.openDrawer(GravityCompat.START)
-                    return true
                 }
+                return true
             }
         }
         return super.onKeyDown(keyCode, event)
