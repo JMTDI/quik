@@ -19,6 +19,7 @@
 package dev.octoshrimpy.quik.feature.settings
 
 import android.os.Bundle
+import android.view.KeyEvent
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.RouterTransaction
@@ -46,6 +47,20 @@ class SettingsActivity : QkThemedActivity() {
         if (!router.handleBack()) {
             super.onBackPressed()
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle D-pad center/enter key as click for better D-pad support
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                val focusedView = currentFocus
+                if (focusedView != null && focusedView.isClickable) {
+                    focusedView.performClick()
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
 }

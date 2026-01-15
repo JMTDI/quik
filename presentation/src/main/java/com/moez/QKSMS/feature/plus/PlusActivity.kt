@@ -20,6 +20,7 @@ package dev.octoshrimpy.quik.feature.plus
 
 import android.graphics.Typeface
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.core.view.children
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
@@ -123,6 +124,20 @@ class PlusActivity : QkThemedActivity(), PlusView {
                 makeToast(R.string.qksms_plus_error)
             }
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle D-pad center/enter key as click for better D-pad support
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                val focusedView = currentFocus
+                if (focusedView != null && focusedView.isClickable) {
+                    focusedView.performClick()
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
 }

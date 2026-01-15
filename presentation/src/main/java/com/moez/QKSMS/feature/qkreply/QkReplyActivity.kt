@@ -24,6 +24,7 @@ import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -176,6 +177,20 @@ class QkReplyActivity : QkThemedActivity(), QkReplyView {
     override fun getActivityThemeRes(black: Boolean) = when {
         black -> R.style.AppThemeDialog_Black
         else -> R.style.AppThemeDialog
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle D-pad center/enter key as click for better D-pad support
+        when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                val focusedView = currentFocus
+                if (focusedView != null && focusedView.isClickable) {
+                    focusedView.performClick()
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
 }
