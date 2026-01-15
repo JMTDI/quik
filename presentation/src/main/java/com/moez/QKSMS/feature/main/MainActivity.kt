@@ -287,6 +287,9 @@ class MainActivity : QkThemedActivity(), MainView {
                 conversationsAdapter.updateData(state.page.data)
                 itemTouchHelper.attachToRecyclerView(recyclerView)
                 empty.setText(R.string.inbox_empty_text)
+                
+                // Update focus navigation based on whether list is empty
+                toolbarSearch.nextFocusDownId = if (empty.isVisible) R.id.empty else R.id.recyclerView
             }
 
             is Searching -> {
@@ -295,6 +298,9 @@ class MainActivity : QkThemedActivity(), MainView {
                 searchAdapter.data = state.page.data ?: listOf()
                 itemTouchHelper.attachToRecyclerView(null)
                 empty.setText(R.string.inbox_search_empty_text)
+                
+                // Update focus navigation based on whether search results are empty
+                toolbarSearch.nextFocusDownId = if (empty.isVisible) R.id.empty else R.id.recyclerView
             }
 
             is Archived -> {
@@ -308,6 +314,9 @@ class MainActivity : QkThemedActivity(), MainView {
                 conversationsAdapter.updateData(state.page.data)
                 itemTouchHelper.attachToRecyclerView(null)
                 empty.setText(R.string.archived_empty_text)
+                
+                // Update focus navigation based on whether list is empty
+                toolbarSearch.nextFocusDownId = if (empty.isVisible) R.id.empty else R.id.recyclerView
             }
 
             else -> {}
