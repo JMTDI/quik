@@ -72,6 +72,7 @@
                     android:background="@drawable/rounded_rectangle_2dp"
                     android:text="@string/qksms_plus_upgrade"
                     android:focusable="true"
+                    android:focusableInTouchMode="true"
                     android:clickable="true"
                     app:textColor="primaryOnTheme"
                     tools:backgroundTint="@color/tools_theme" />
@@ -85,6 +86,7 @@
                     android:text="@string/qksms_plus_upgrade_donate"
                     android:textColor="?android:attr/textColorPrimary"
                     android:focusable="true"
+                    android:focusableInTouchMode="true"
                     android:clickable="true"
                     tools:backgroundTint="@color/separatorLight" />
 
@@ -158,6 +160,7 @@
                     android:background="@drawable/rounded_rectangle_2dp"
                     android:text="@string/qksms_plus_donate"
                     android:focusable="true"
+                    android:focusableInTouchMode="true"
                     android:clickable="true"
                     app:textColor="primaryOnTheme"
                     tools:backgroundTint="@color/tools_theme" />
