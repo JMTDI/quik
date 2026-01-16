@@ -504,15 +504,6 @@ class MainActivity : QkThemedActivity(), MainView {
                     return true
                 }
             }
-            KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_SOFT_LEFT -> {
-                // Toggle drawer when menu key or left soft key is pressed
-                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    drawerLayout.closeDrawer(GravityCompat.START)
-                } else {
-                    drawerLayout.openDrawer(GravityCompat.START)
-                }
-                return true
-            }
         }
         return super.onKeyDown(keyCode, event)
     }

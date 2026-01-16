@@ -758,8 +758,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                     return true
                 }
             }
-            KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_SOFT_LEFT -> {
-                // Open attach menu when menu or soft left key is pressed
+            KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_SOFT_LEFT, KeyEvent.KEYCODE_SOFT_RIGHT -> {
+                // Open attach menu when menu or soft keys are pressed
                 attach.performClick()
                 return true
             }
