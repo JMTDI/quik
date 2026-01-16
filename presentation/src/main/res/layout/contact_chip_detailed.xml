@@ -30,6 +30,9 @@
     android:paddingStart="16dp"
     android:paddingTop="8dp"
     android:paddingBottom="8dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
     tools:backgroundTint="@color/tools_theme">
 
     <dev.octoshrimpy.quik.common.widget.AvatarView

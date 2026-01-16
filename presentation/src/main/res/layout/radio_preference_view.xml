@@ -23,6 +23,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
     tools:parentTag="dev.octoshrimpy.quik.common.widget.RadioPreferenceView">
 
     <androidx.appcompat.widget.AppCompatRadioButton

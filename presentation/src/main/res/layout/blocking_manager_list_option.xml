@@ -24,5 +24,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
+    android:background="?attr/selectableItemBackground"
     tools:src="@drawable/ic_chevron_right_black_24dp"
     tools:tint="?android:attr/textColorTertiary" />
