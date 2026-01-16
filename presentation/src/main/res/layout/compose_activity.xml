@@ -160,8 +160,10 @@
         android:backgroundTint="?attr/bubbleColor"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/send"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@id/attach"
-        app:layout_constraintTop_toTopOf="@id/scheduledCancel" />
+        app:layout_constraintTop_toTopOf="@id/scheduledCancel"
+        app:layout_constraintWidth_max="400dp" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/scheduledGroup"

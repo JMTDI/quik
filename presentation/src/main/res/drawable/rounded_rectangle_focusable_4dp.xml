@@ -29,7 +29,7 @@
             <item android:top="2dp" android:bottom="2dp" android:left="2dp" android:right="2dp">
                 <shape android:shape="rectangle">
                     <corners android:radius="4dp" />
-                    <stroke android:width="2dp" android:color="@color/white" />
+                    <stroke android:width="3dp" android:color="#2196F3" />
                 </shape>
             </item>
         </layer-list>
