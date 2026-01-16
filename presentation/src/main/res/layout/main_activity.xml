@@ -44,6 +44,22 @@
                 android:layout_marginStart="16dp"
                 android:visibility="gone" />
 
+            <ImageView
+                android:id="@+id/compose"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/main_fab_cd"
+                android:padding="8dp"
+                android:src="@drawable/ic_add_black_24dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusLeft="@+id/recyclerView"
+                android:nextFocusRight="@+id/toolbarSearch"
+                app:tint="?android:attr/textColorPrimary" />
+
             <dev.octoshrimpy.quik.common.widget.QkEditText
                 android:id="@+id/toolbarSearch"
                 style="@style/ToolbarText"
@@ -64,7 +80,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:nextFocusDown="@+id/recyclerView"
-                android:nextFocusRight="@+id/compose" />
+                android:nextFocusLeft="@+id/compose" />
         </androidx.appcompat.widget.Toolbar>
 
         <dev.octoshrimpy.quik.common.widget.QkTextView
@@ -98,24 +114,6 @@
             app:layout_constraintBottom_toTopOf="@id/bottom"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             tools:listitem="@layout/conversation_list_item" />
-
-        <ImageView
-            android:id="@+id/compose"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_margin="16dp"
-            android:background="@drawable/circle_ripple"
-            android:contentDescription="@string/main_fab_cd"
-            android:elevation="8dp"
-            android:padding="16dp"
-            android:src="@drawable/ic_add_black_24dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:nextFocusLeft="@+id/recyclerView"
-            app:layout_constraintBottom_toTopOf="@id/bottom"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:backgroundTint="@color/tools_theme"
-            app:tint="@color/white" />
 
         <View
             android:layout_width="0dp"
