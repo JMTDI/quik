@@ -676,6 +676,7 @@
         android:layout_height="44dp"
         android:layout_marginStart="12dp"
         android:background="@drawable/circle_focusable"
+        android:backgroundTint="?attr/bubbleColor"
         android:contentDescription="@string/compose_attach_cd"
         android:elevation="4dp"
         android:padding="10dp"
@@ -687,6 +688,7 @@
         android:nextFocusUp="@+id/toolbar"
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintStart_toStartOf="parent"
+        app:tint="?android:attr/textColorSecondary"
         tools:backgroundTint="@color/tools_theme"
         tools:tint="@color/textPrimaryDark" />
 
