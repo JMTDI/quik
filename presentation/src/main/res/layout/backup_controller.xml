@@ -88,6 +88,9 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="16dp"
                     android:src="@drawable/ic_close_black_24dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:clickable="true"
                     app:tint="?android:attr/textColorSecondary"
                     app:layout_constraintBottom_toBottomOf="@id/progressSummary"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -160,6 +163,9 @@
         android:background="@drawable/rounded_rectangle_24dp"
         android:elevation="4dp"
         android:gravity="center"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
         tools:backgroundTint="@color/tools_theme">
 
         <ImageView

@@ -76,6 +76,11 @@ class PreferenceView @JvmOverloads constructor(
         setBackgroundResource(context.resolveThemeAttribute(R.attr.selectableItemBackground))
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
+        
+        // Enable D-pad navigation
+        isFocusable = true
+        isFocusableInTouchMode = true
+        isClickable = true
 
         layout.icon.imageTintList = context.resolveThemeColorStateList(android.R.attr.textColorSecondary)
 

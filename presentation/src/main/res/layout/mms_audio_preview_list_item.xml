@@ -24,7 +24,11 @@
     android:layout_width="280dp"
     android:layout_height="140dp"
     android:layout_marginTop="2dp"
-    android:clipChildren="false">
+    android:clipChildren="false"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
+    android:background="?attr/selectableItemBackground">
 
     <dev.octoshrimpy.quik.common.widget.BubbleImageView
         android:id="@+id/thumbnail"

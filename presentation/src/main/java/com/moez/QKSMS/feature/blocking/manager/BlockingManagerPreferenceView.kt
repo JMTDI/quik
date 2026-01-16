@@ -78,6 +78,11 @@ class BlockingManagerPreferenceView @JvmOverloads constructor(
 
     init {
         setBackgroundResource(context.resolveThemeAttribute(R.attr.selectableItemBackground))
+        
+        // Enable D-pad navigation
+        isFocusable = true
+        isFocusableInTouchMode = true
+        isClickable = true
 
         context.obtainStyledAttributes(attrs, R.styleable.BlockingManagerPreferenceView).run {
             icon = getDrawable(R.styleable.BlockingManagerPreferenceView_icon)

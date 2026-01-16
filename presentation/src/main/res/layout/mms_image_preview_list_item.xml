@@ -21,7 +21,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="280dp"
     android:layout_height="280dp"
-    android:layout_marginTop="2dp">
+    android:layout_marginTop="2dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
+    android:background="?attr/selectableItemBackground">
 
     <dev.octoshrimpy.quik.common.widget.BubbleImageView
         android:id="@+id/thumbnail"

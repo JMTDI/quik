@@ -24,7 +24,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fileBackground"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
+    android:background="?attr/selectableItemBackground">
 
     <ImageView
         android:id="@+id/icon"

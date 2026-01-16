@@ -76,6 +76,11 @@ class RadioPreferenceView @JvmOverloads constructor(
 
         layout = RadioPreferenceViewBinding.inflate(LayoutInflater.from(context), this)
         setBackgroundResource(context.resolveThemeAttribute(R.attr.selectableItemBackground))
+        
+        // Enable D-pad navigation
+        isFocusable = true
+        isFocusableInTouchMode = true
+        isClickable = true
 
         val states = arrayOf(
                 intArrayOf(android.R.attr.state_checked),

@@ -25,4 +25,7 @@
     android:clipToPadding="false"
     android:paddingTop="8dp"
     android:paddingBottom="8dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:descendantFocusability="afterDescendants"
     android:textDirection="ltr" />
