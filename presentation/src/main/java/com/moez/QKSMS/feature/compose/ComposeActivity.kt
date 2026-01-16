@@ -758,6 +758,21 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                     return true
                 }
             }
+            KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_SOFT_LEFT -> {
+                // Open attach menu when menu or soft left key is pressed
+                attach.performClick()
+                return true
+            }
+            KeyEvent.KEYCODE_CALL -> {
+                // Send message when call key is pressed (if send button is visible)
+                if (send.visibility == View.VISIBLE) {
+                    send.performClick()
+                    return true
+                } else if (scheduledSend.visibility == View.VISIBLE) {
+                    scheduledSend.performClick()
+                    return true
+                }
+            }
         }
         return super.onKeyDown(keyCode, event)
     }

@@ -197,10 +197,9 @@ class MainActivity : QkThemedActivity(), MainView {
                     syncingProgress?.indeterminateTintList = ColorStateList.valueOf(theme.theme)
                     plusIcon.setTint(theme.theme)
                     rateIcon.setTint(theme.theme)
-                    compose.setBackgroundTint(theme.theme)
 
-                    // Set the FAB compose icon color
-                    compose.setTint(theme.textPrimary)
+                    // Set the compose icon color
+                    compose.setTint(theme.theme)
                 }
     }
 
