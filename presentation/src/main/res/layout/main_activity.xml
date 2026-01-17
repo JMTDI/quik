@@ -58,7 +58,7 @@
                 android:focusableInTouchMode="true"
                 android:nextFocusLeft="@+id/recyclerView"
                 android:nextFocusRight="@+id/toolbarSearch"
-                android:nextFocusDown="@+id/toolbarSearch"
+                android:nextFocusDown="@+id/recyclerView"
                 app:tint="?android:attr/textColorPrimary" />
 
             <dev.octoshrimpy.quik.common.widget.QkEditText
@@ -112,6 +112,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:descendantFocusability="afterDescendants"
+            android:nextFocusUp="@+id/compose"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@id/bottom"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
