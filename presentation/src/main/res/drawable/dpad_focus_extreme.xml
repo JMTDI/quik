@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Extreme visibility focus highlight for critical navigation elements
+  ~ Perfect for very small flip phone screens
+  -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <!-- Background -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="?attr/bubbleColor"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Outer bright border (yellow for maximum visibility) -->
+            <item>
+                <shape android:shape="rectangle">
+                    <stroke android:width="10dp" android:color="#FFD700"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Middle accent border -->
+            <item android:left="8dp" android:right="8dp" android:top="8dp" android:bottom="8dp">
+                <shape android:shape="rectangle">
+                    <stroke android:width="4dp" android:color="?attr/colorAccent"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Inner white border -->
+            <item android:left="10dp" android:right="10dp" android:top="10dp" android:bottom="10dp">
+                <shape android:shape="rectangle">
+                    <stroke android:width="2dp" android:color="#FFFFFF"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+            <!-- Bright glow -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#55FFEB3B"/>
+                    <corners android:radius="4dp"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/bubbleColor"/>
+            <corners android:radius="4dp"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent"/>
+        </shape>
+    </item>
+</selector>

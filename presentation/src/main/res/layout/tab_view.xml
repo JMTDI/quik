@@ -22,13 +22,13 @@
     android:id="@+id/label"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
-    android:background="@drawable/selectable_item_background_focus"
-    android:focusable="true"
-    android:clickable="true"
+    android:background="@drawable/dpad_focus_highlight"
     android:backgroundTint="@android:color/transparent"
     android:gravity="center"
     android:paddingStart="12dp"
     android:paddingEnd="12dp"
     android:textAllCaps="true"
     android:textStyle="bold"
-    app:textSize="secondary" />
+    app:textSize="secondary"
+    android:focusable="true"
+    android:clickable="true" />

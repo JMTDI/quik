@@ -132,7 +132,9 @@
                     android:paddingTop="8dp"
                     android:paddingBottom="8dp"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    tools:listitem="@layout/scheduled_message_list_item" />
+                    tools:listitem="@layout/scheduled_message_list_item"
+                    android:focusable="false"
+                    android:descendantFocusability="afterDescendants" />
 
             </LinearLayout>
 
@@ -148,7 +150,9 @@
             android:src="@drawable/ic_schedule_send_black_24dp"
             android:tint="@color/white"
             android:visibility="visible"
-            tools:backgroundTint="@color/tools_theme" />
+            tools:backgroundTint="@color/tools_theme"
+            android:focusable="true"
+            android:clickable="true" />
 
         <LinearLayout
             android:id="@+id/upgrade"
@@ -156,11 +160,13 @@
             android:layout_height="48dp"
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
-            android:background="@drawable/rounded_rectangle_24dp"
+            android:background="@drawable/dpad_focus_button"
             android:elevation="4dp"
             android:gravity="center"
             android:visibility="gone"
-            tools:backgroundTint="@color/tools_theme">
+            tools:backgroundTint="@color/tools_theme"
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 android:id="@+id/upgradeIcon"

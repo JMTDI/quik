@@ -25,6 +25,7 @@ import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -480,6 +481,97 @@ class MainActivity : QkThemedActivity(), MainView {
         optionsItemIntent.onNext(item.itemId).let { true }
 
     override fun onBackPressed() = backPressedSubject.onNext(NavItem.BACK)
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // D-pad shortcuts for flip phone navigation
+        when (keyCode) {
+            // Number keys for quick navigation
+            KeyEvent.KEYCODE_1 -> {
+                // Navigate to Inbox
+                navigationIntent.onNext(NavItem.INBOX)
+                return true
+            }
+            KeyEvent.KEYCODE_2 -> {
+                // Navigate to Archived
+                navigationIntent.onNext(NavItem.ARCHIVED)
+                return true
+            }
+            KeyEvent.KEYCODE_3 -> {
+                // Navigate to Settings
+                navigationIntent.onNext(NavItem.SETTINGS)
+                return true
+            }
+            KeyEvent.KEYCODE_4 -> {
+                // Navigate to Scheduled messages
+                navigationIntent.onNext(NavItem.SCHEDULED)
+                return true
+            }
+            KeyEvent.KEYCODE_5 -> {
+                // Navigate to Blocking
+                navigationIntent.onNext(NavItem.BLOCKING)
+                return true
+            }
+            KeyEvent.KEYCODE_6 -> {
+                // Navigate to Backup
+                navigationIntent.onNext(NavItem.BACKUP)
+                return true
+            }
+            KeyEvent.KEYCODE_0 -> {
+                // Clear search / Clear selection
+                if (toolbarSearch.text.isNotEmpty()) {
+                    clearSearch()
+                } else {
+                    clearSelection()
+                }
+                return true
+            }
+            KeyEvent.KEYCODE_STAR -> {
+                // Select all conversations (for multi-select actions)
+                toggleSelectAll()
+                return true
+            }
+            KeyEvent.KEYCODE_POUND -> {
+                // Focus search bar
+                toolbarSearch.requestFocus()
+                return true
+            }
+            // Center D-pad on search bar focuses it
+            KeyEvent.KEYCODE_DPAD_CENTER -> {
+                if (toolbarSearch.hasFocus()) {
+                    toolbarSearch.selectAll()
+                    return true
+                }
+            }
+            // Menu button opens drawer
+            KeyEvent.KEYCODE_MENU -> {
+                if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.openDrawer(GravityCompat.START)
+                } else {
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                return true
+            }
+            // Call button to compose new message
+            KeyEvent.KEYCODE_CALL -> {
+                composeIntent.onNext(Unit)
+                return true
+            }
+            // Volume keys for quick scroll
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                if (event?.isLongPress == false) {
+                    recyclerView.smoothScrollBy(0, -200)
+                    return true
+                }
+            }
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                if (event?.isLongPress == false) {
+                    recyclerView.smoothScrollBy(0, 200)
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 
     override fun drawerToggled(opened: Boolean) {
         if (opened) {

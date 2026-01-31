@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Enhanced selectable item background with focus support for D-pad navigation
+  ~ D-pad focus highlight for buttons with text - Extra visible for flip phones
   -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Focused state with highlighted border -->
     <item android:state_focused="true">
         <layer-list>
             <item>
                 <shape android:shape="rectangle">
-                    <solid android:color="?attr/bubbleColor"/>
+                    <solid android:color="?attr/colorPrimary"/>
+                    <corners android:radius="4dp"/>
                 </shape>
             </item>
-            <item>
+            <item android:left="3dp" android:right="3dp" android:top="3dp" android:bottom="3dp">
                 <shape android:shape="rectangle">
-                    <stroke android:width="3dp" android:color="?attr/colorAccent"/>
+                    <stroke android:width="4dp" android:color="#FFFFFF"/>
+                    <corners android:radius="4dp"/>
                 </shape>
             </item>
         </layer-list>
     </item>
-    <!-- Pressed state -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="?attr/bubbleColor"/>
+            <solid android:color="?attr/colorPrimary"/>
+            <corners android:radius="4dp"/>
         </shape>
     </item>
-    <!-- Default transparent state -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@android:color/transparent"/>
+            <solid android:color="?attr/colorPrimary"/>
+            <corners android:radius="4dp"/>
         </shape>
     </item>
 </selector>

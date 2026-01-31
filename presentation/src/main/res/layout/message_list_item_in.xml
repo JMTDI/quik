@@ -23,11 +23,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/selectable_item_background_focus"
+    android:background="@drawable/dpad_focus_highlight"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:focusable="true"
-    android:focusableInTouchMode="false"
     android:clickable="true">
 
     <LinearLayout

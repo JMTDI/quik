@@ -22,12 +22,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/selectable_item_background_focus"
+    android:background="@drawable/dpad_focus_highlight"
     android:paddingTop="4dp"
     android:paddingBottom="4dp"
+    app:layout_constraintVertical_chainStyle="packed"
     android:focusable="true"
-    android:clickable="true"
-    app:layout_constraintVertical_chainStyle="packed">
+    android:clickable="true">
 
     <dev.octoshrimpy.quik.common.widget.GroupAvatarView
         android:id="@+id/avatars"

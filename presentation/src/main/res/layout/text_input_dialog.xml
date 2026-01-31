@@ -25,7 +25,9 @@
     android:background="@null"
     android:lines="1"
     android:maxLength="64"
-    android:padding="24dp"
+    android:padding="20dp"
     android:singleLine="true"
     android:textStyle="bold"
-    app:textSize="dialog" />
+    android:textSize="16sp"
+    android:focusable="true"
+    android:focusableInTouchMode="true" />

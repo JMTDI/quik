@@ -40,6 +40,7 @@ import android.view.ContextMenu
 import android.view.DragEvent.ACTION_DRAG_ENDED
 import android.view.DragEvent.ACTION_DRAG_EXITED
 import android.view.DragEvent.ACTION_DROP
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -851,6 +852,74 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     }
 
     override fun onBackPressed() = backPressedIntent.onNext(Unit)
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Flip phone shortcuts for compose screen
+        when (keyCode) {
+            // Call button to send message
+            KeyEvent.KEYCODE_CALL -> {
+                if (send.visibility == View.VISIBLE) {
+                    sendIntent.onNext(Unit)
+                    return true
+                }
+            }
+            // Number shortcuts
+            KeyEvent.KEYCODE_1 -> {
+                // Toggle attach menu
+                attach.performClick()
+                return true
+            }
+            KeyEvent.KEYCODE_2 -> {
+                // Open camera
+                camera.performClick()
+                return true
+            }
+            KeyEvent.KEYCODE_3 -> {
+                // Open gallery
+                gallery.performClick()
+                return true
+            }
+            KeyEvent.KEYCODE_4 -> {
+                // Attach contact
+                contact.performClick()
+                return true
+            }
+            KeyEvent.KEYCODE_5 -> {
+                // Schedule message
+                schedule.performClick()
+                return true
+            }
+            KeyEvent.KEYCODE_0 -> {
+                // Clear message text
+                message.text?.clear()
+                return true
+            }
+            KeyEvent.KEYCODE_STAR -> {
+                // Focus message input
+                message.requestFocus()
+                return true
+            }
+            KeyEvent.KEYCODE_POUND -> {
+                // Add emoji (if keyboard supports it)
+                message.append("😊")
+                return true
+            }
+            // Volume keys for scrolling messages
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                if (event?.isLongPress == false) {
+                    messageList.smoothScrollBy(0, -200)
+                    return true
+                }
+            }
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                if (event?.isLongPress == false) {
+                    messageList.smoothScrollBy(0, 200)
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 
     override fun focusMessage() {
         message.requestFocus()

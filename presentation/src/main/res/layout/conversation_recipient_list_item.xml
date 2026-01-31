@@ -22,13 +22,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/selectable_item_background_focus"
+    android:background="@drawable/dpad_focus_highlight"
     android:paddingStart="24dp"
-    android:focusable="true"
-    android:clickable="true"
     android:paddingTop="8dp"
     android:paddingEnd="16dp"
-    android:paddingBottom="8dp">
+    android:paddingBottom="8dp"
+    android:focusable="true"
+    android:clickable="true">
 
     <dev.octoshrimpy.quik.common.widget.AvatarView
         android:id="@+id/avatar"
@@ -74,18 +74,23 @@
         app:tint="?android:attr/textColorSecondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/theme"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/dpad_focus_circle"
+        android:focusable="true"
+        android:clickable="true" />
 
     <ImageView
         android:id="@+id/theme"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:background="@drawable/dpad_focus_circle"
         android:padding="8dp"
         android:src="@drawable/ic_palette_black_24dp"
         app:tint="?android:attr/textColorSecondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:focusable="true"
+        android:clickable="true" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

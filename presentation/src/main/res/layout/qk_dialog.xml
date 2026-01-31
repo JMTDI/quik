@@ -68,7 +68,9 @@
         app:layout_constraintTop_toBottomOf="@id/subtitle"
         tools:itemCount="20"
         tools:listitem="@layout/phone_number_list_item"
-        tools:visibility="visible" />
+        tools:visibility="visible"
+        android:focusable="false"
+        android:descendantFocusability="afterDescendants" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/positiveButton"
@@ -76,7 +78,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/dpad_focus_button"
         android:padding="16dp"
         android:textColor="?android:attr/textColorSecondary"
         android:textStyle="bold"
@@ -87,14 +89,16 @@
         app:layout_goneMarginRight="8dp"
         app:textSize="secondary"
         tools:text="Always"
-        tools:visibility="visible" />
+        tools:visibility="visible"
+        android:focusable="true"
+        android:clickable="true" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/negativeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/dpad_focus_button"
         android:padding="16dp"
         android:textColor="?android:attr/textColorSecondary"
         android:textStyle="bold"
@@ -104,6 +108,8 @@
         app:layout_constraintTop_toBottomOf="@id/list"
         app:textSize="secondary"
         tools:text="Just once"
-        tools:visibility="visible" />
+        tools:visibility="visible"
+        android:focusable="true"
+        android:clickable="true" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

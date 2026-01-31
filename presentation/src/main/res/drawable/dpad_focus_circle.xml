@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ D-pad focus highlight for circular buttons - Enhanced for flip phone visibility
+  -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="?attr/colorPrimary"/>
+                </shape>
+            </item>
+            <!-- Ultra-bright outer ring -->
+            <item>
+                <shape android:shape="oval">
+                    <stroke android:width="8dp" android:color="?attr/colorAccent"/>
+                </shape>
+            </item>
+            <!-- Middle white ring for contrast -->
+            <item android:top="6dp" android:bottom="6dp" android:left="6dp" android:right="6dp">
+                <shape android:shape="oval">
+                    <stroke android:width="4dp" android:color="#FFFFFF"/>
+                </shape>
+            </item>
+            <!-- Inner yellow accent ring -->
+            <item android:top="8dp" android:bottom="8dp" android:left="8dp" android:right="8dp">
+                <shape android:shape="oval">
+                    <stroke android:width="2dp" android:color="#FFEB3B"/>
+                </shape>
+            </item>
+            <!-- Bright glow overlay -->
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="#33FFFFFF"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <solid android:color="?attr/colorPrimary"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="?attr/colorPrimary"/>
+        </shape>
+    </item>
+</selector>

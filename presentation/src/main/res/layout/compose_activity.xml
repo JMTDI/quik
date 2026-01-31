@@ -75,6 +75,7 @@
         app:layout_constraintTop_toBottomOf="@id/sendAsGroupBackground"
         app:stackFromEnd="true"
         tools:listitem="@layout/message_list_item_in"
+        android:focusable="false"
         android:descendantFocusability="afterDescendants" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
@@ -279,12 +280,13 @@
         android:hint="@string/compose_hint"
         android:inputType="textLongMessage|textCapSentences|textMultiLine"
         android:longClickable="true"
-        android:maxLines="6"
-        android:minHeight="44dp"
-        android:paddingStart="16dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="12dp"
+        android:maxLines="4"
+        android:minHeight="36dp"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
+        android:textSize="14sp"
         android:textColorHint="?android:attr/textColorTertiary"
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintEnd_toStartOf="@id/sim"
@@ -344,7 +346,7 @@
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:layout_marginEnd="8dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:background="@drawable/dpad_focus_circle"
         android:contentDescription="@string/compose_send_cd"
         android:padding="10dp"
         android:src="@drawable/ic_send_black_24dp"
@@ -354,6 +356,7 @@
         app:tint="?android:textColorSecondary"
         tools:visibility="visible"
         android:focusable="true"
+        android:clickable="true"
         android:nextFocusLeft="@+id/message"
         android:nextFocusUp="@+id/messageList" />
 
@@ -448,7 +451,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginBottom="12dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/dpad_focus_circle"
         android:backgroundTint="@color/tools_theme"
         android:contentDescription="@string/compose_contact_cd"
         android:elevation="4dp"
@@ -458,7 +461,10 @@
         app:layout_constraintBottom_toTopOf="@id/schedule"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
-        app:tint="@color/textPrimaryDark" />
+        app:tint="@color/textPrimaryDark"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusDown="@+id/schedule" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/contactLabel"
@@ -482,7 +488,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginBottom="12dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/dpad_focus_circle"
         android:backgroundTint="@color/tools_theme"
         android:contentDescription="@string/compose_schedule_cd"
         android:elevation="4dp"
@@ -492,7 +498,11 @@
         app:layout_constraintBottom_toTopOf="@id/attachAFileIcon"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
-        app:tint="@color/textPrimaryDark" />
+        app:tint="@color/textPrimaryDark"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/contact"
+        android:nextFocusDown="@+id/attachAFileIcon" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/scheduleLabel"
@@ -516,7 +526,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginBottom="12dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/dpad_focus_circle"
         android:backgroundTint="@color/tools_theme"
         android:contentDescription="@string/compose_attach_file_cd"
         android:elevation="4dp"
@@ -527,7 +537,11 @@
         app:layout_constraintBottom_toTopOf="@id/attachAnAudioMessageIcon"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
-        app:tint="@color/textPrimaryDark" />
+        app:tint="@color/textPrimaryDark"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/schedule"
+        android:nextFocusDown="@+id/attachAnAudioMessageIcon" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/attachAFileLabel"
@@ -551,7 +565,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginBottom="12dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/dpad_focus_circle"
         android:backgroundTint="@color/tools_theme"
         android:contentDescription="@string/compose_audio_message_cd"
         android:elevation="4dp"
@@ -561,7 +575,11 @@
         app:layout_constraintBottom_toTopOf="@id/gallery"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
-        app:tint="@color/textPrimaryDark" />
+        app:tint="@color/textPrimaryDark"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/attachAFileIcon"
+        android:nextFocusDown="@+id/gallery" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/attachAnAudioMessageLabel"
@@ -585,7 +603,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginBottom="12dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/dpad_focus_circle"
         android:backgroundTint="@color/tools_theme"
         android:contentDescription="@string/compose_gallery_cd"
         android:elevation="4dp"
@@ -595,7 +613,11 @@
         app:layout_constraintBottom_toTopOf="@id/camera"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
-        app:tint="@color/textPrimaryDark" />
+        app:tint="@color/textPrimaryDark"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/attachAnAudioMessageIcon"
+        android:nextFocusDown="@+id/camera" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/galleryLabel"
@@ -619,7 +641,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/dpad_focus_circle"
         android:backgroundTint="@color/tools_theme"
         android:contentDescription="@string/compose_camera_cd"
         android:elevation="4dp"
@@ -629,7 +651,11 @@
         app:layout_constraintBottom_toTopOf="@id/attach"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
-        app:tint="@color/textPrimaryDark" />
+        app:tint="@color/textPrimaryDark"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/gallery"
+        android:nextFocusDown="@+id/attach" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/cameraLabel"
@@ -653,7 +679,7 @@
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:layout_marginStart="12dp"
-        android:background="@drawable/circle_focus_highlight"
+        android:background="@drawable/dpad_focus_circle"
         android:contentDescription="@string/compose_attach_cd"
         android:elevation="4dp"
         android:padding="10dp"
@@ -663,6 +689,7 @@
         tools:backgroundTint="@color/tools_theme"
         tools:tint="@color/textPrimaryDark"
         android:focusable="true"
+        android:clickable="true"
         android:nextFocusRight="@+id/message"
         android:nextFocusUp="@+id/messageList" />
 

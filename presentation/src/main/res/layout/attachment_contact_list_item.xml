@@ -22,11 +22,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    tools:background="?attr/bubbleColor">
+    tools:background="?attr/bubbleColor"
+    android:focusable="true"
+    android:clickable="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
-        android:layout_height="56dp"
+        android:layout_height="48dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
@@ -36,9 +38,9 @@
 
         <ImageView
             android:id="@+id/vCardAvatar"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginStart="16dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="12dp"
             android:src="@drawable/ic_person_black_24dp"
             app:tint="?android:attr/textColorSecondary"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -49,45 +51,47 @@
             android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
             android:textColor="?android:attr/textColorPrimary"
+            android:textSize="13sp"
             app:layout_constraintBottom_toTopOf="@id/label"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toEndOf="@id/vCardAvatar"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
-            app:textSize="primary"
             tools:text="@tools:sample/full_names" />
 
         <dev.octoshrimpy.quik.common.widget.QkTextView
             android:id="@+id/label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
             android:text="@string/compose_vcard_label"
             android:textColor="?android:attr/textColorTertiary"
+            android:textSize="11sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toEndOf="@id/vCardAvatar"
-            app:layout_constraintTop_toBottomOf="@id/name"
-            app:textSize="secondary" />
+            app:layout_constraintTop_toBottomOf="@id/name" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
         android:id="@+id/detach"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:layout_gravity="top|end"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="2dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/dpad_focus_circle"
         android:backgroundTint="?attr/bubbleColor"
         android:src="@drawable/ic_cancel_black_24dp"
-        app:tint="?android:attr/textColorSecondary" />
+        app:tint="?android:attr/textColorSecondary"
+        android:focusable="true"
+        android:clickable="true" />
 
 </FrameLayout>

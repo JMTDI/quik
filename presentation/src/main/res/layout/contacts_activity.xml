@@ -41,7 +41,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         tools:listitem="@layout/contact_list_item"
-        android:textDirection="ltr" />
+        android:textDirection="ltr"
+        android:focusable="false"
+        android:descendantFocusability="afterDescendants" />
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -63,8 +65,8 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
-                android:minHeight="40dp"
-                android:background="@drawable/rounded_rectangle_24dp"
+                android:minHeight="36dp"
+                android:background="@drawable/dpad_focus_highlight"
                 android:backgroundTint="?attr/bubbleColor"
                 android:hint="@string/title_compose"
                 android:inputType="textFilter|textNoSuggestions"
@@ -72,9 +74,12 @@
                 android:maxLines="1"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
+                android:textSize="14sp"
                 android:textColorHint="?android:attr/textColorTertiary"
-                app:textSize="primary"
-                tools:textSize="16sp" />
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusRight="@+id/cancel"
+                android:nextFocusDown="@+id/contacts" />
 
 <!--            <dev.octoshrimpy.quik.common.widget.QkEditText-->
 <!--                android:id="@+id/search"-->
@@ -98,15 +103,19 @@
 
             <ImageView
                 android:id="@+id/cancel"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_gravity="center_vertical|end"
                 android:layout_marginEnd="8dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/dpad_focus_circle"
                 android:padding="8dp"
                 android:src="@drawable/ic_cancel_black_24dp"
                 android:visibility="gone"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="?android:attr/textColorSecondary"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusLeft="@+id/search"
+                android:nextFocusDown="@+id/contacts" />
 
         </FrameLayout>
 

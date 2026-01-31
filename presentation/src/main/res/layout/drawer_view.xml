@@ -34,7 +34,8 @@
         <LinearLayout
             android:id="@+id/inbox"
             style="@style/DrawerRow"
-            android:focusable="true">
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 android:id="@+id/inboxIcon"
@@ -51,7 +52,8 @@
         <LinearLayout
             android:id="@+id/archived"
             style="@style/DrawerRow"
-            android:focusable="true">
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 android:id="@+id/archivedIcon"
@@ -75,7 +77,8 @@
         <LinearLayout
             android:id="@+id/backup"
             style="@style/DrawerRow"
-            android:focusable="true">
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -103,7 +106,8 @@
         <LinearLayout
             android:id="@+id/scheduled"
             style="@style/DrawerRow"
-            android:focusable="true">
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -131,7 +135,8 @@
         <LinearLayout
             android:id="@+id/blocking"
             style="@style/DrawerRow"
-            android:focusable="true">
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -147,7 +152,8 @@
         <LinearLayout
             android:id="@+id/messageUtils"
             style="@style/DrawerRow"
-            android:focusable="true">
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -170,7 +176,8 @@
         <LinearLayout
             android:id="@+id/settings"
             style="@style/DrawerRow"
-            android:focusable="true">
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -216,7 +223,8 @@
         <LinearLayout
             android:id="@+id/invite"
             style="@style/DrawerRow"
-            android:focusable="true">
+            android:focusable="true"
+            android:clickable="true">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -238,7 +246,7 @@
             android:layout_marginEnd="8dp"
             android:background="@drawable/rounded_rectangle_outline_2dp"
             android:backgroundTint="?android:attr/divider"
-            android:foreground="?attr/selectableItemBackground"
+            android:foreground="@drawable/dpad_focus_highlight"
             android:padding="16dp"
             android:focusable="true"
             android:clickable="true">
@@ -355,9 +363,7 @@
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@id/rateOkay"
                 app:layout_constraintTop_toBottomOf="@id/rateSummary"
-                app:textSize="secondary"
-                android:focusable="true"
-                android:clickable="true" />
+                app:textSize="secondary" />
 
             <dev.octoshrimpy.quik.common.widget.QkTextView
                 android:id="@+id/rateOkay"
@@ -365,7 +371,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                android:background="?attr/selectableItemBackground"
+                android:background="@drawable/dpad_focus_highlight"
                 android:padding="16dp"
                 android:text="@string/rate_okay"
                 android:textColor="?android:attr/textColorSecondary"
