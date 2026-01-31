@@ -25,7 +25,7 @@ jobs:
       env: 
         KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        KEY_ALIAS: ${{ secrets. ANDROID_KEY_ALIAS }}
+        KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       run: |
         set -euo pipefail
@@ -41,8 +41,8 @@ jobs:
         fi
 
         mkdir -p presentation
-        echo "$KEYSTORE_B64" | base64 -d > presentation/my-release-key. keystore
-        chmod 600 presentation/my-release-key. keystore
+        echo "$KEYSTORE_B64" | base64 -d > presentation/my-release-key.keystore
+        chmod 600 presentation/my-release-key.keystore
 
         {
           echo "keystore_password=$KEYSTORE_PASSWORD"
@@ -61,7 +61,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: quik-release
-        path: presentation/build/outputs/apk/release/*. apk
+        path: presentation/build/outputs/apk/release/*.apk
         retention-days:  30
 
     # cleanup
