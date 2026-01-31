@@ -414,6 +414,14 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                 }
             )
 
+            // Wire up D-pad friendly attachment menu
+            attachMenuCamera.setOnClickListener { camera.performClick() }
+            attachMenuGallery.setOnClickListener { gallery.performClick() }
+            attachMenuAudio.setOnClickListener { recordAnAudioMessage.onNext(Unit) }
+            attachMenuFile.setOnClickListener { attachAFileIcon.performClick() }
+            attachMenuContact.setOnClickListener { contact.performClick() }
+            attachMenuSchedule.setOnClickListener { schedule.performClick() }
+
             window.callback = ComposeWindowCallback(window.callback, this)
     }
 
@@ -860,60 +868,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
             KeyEvent.KEYCODE_CALL -> {
                 if (send.visibility == View.VISIBLE) {
                     send.performClick()
-                    return true
-                }
-            }
-            // Number shortcuts
-            KeyEvent.KEYCODE_1 -> {
-                // Toggle attach menu
-                attach.performClick()
-                return true
-            }
-            KeyEvent.KEYCODE_2 -> {
-                // Open camera
-                camera.performClick()
-                return true
-            }
-            KeyEvent.KEYCODE_3 -> {
-                // Open gallery
-                gallery.performClick()
-                return true
-            }
-            KeyEvent.KEYCODE_4 -> {
-                // Attach contact
-                contact.performClick()
-                return true
-            }
-            KeyEvent.KEYCODE_5 -> {
-                // Schedule message
-                schedule.performClick()
-                return true
-            }
-            KeyEvent.KEYCODE_0 -> {
-                // Clear message text
-                message.text?.clear()
-                return true
-            }
-            KeyEvent.KEYCODE_STAR -> {
-                // Focus message input
-                message.requestFocus()
-                return true
-            }
-            KeyEvent.KEYCODE_POUND -> {
-                // Add emoji (if keyboard supports it)
-                message.append("😊")
-                return true
-            }
-            // Volume keys for scrolling messages
-            KeyEvent.KEYCODE_VOLUME_UP -> {
-                if (event?.isLongPress == false) {
-                    messageList.smoothScrollBy(0, -200)
-                    return true
-                }
-            }
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                if (event?.isLongPress == false) {
-                    messageList.smoothScrollBy(0, 200)
                     return true
                 }
             }

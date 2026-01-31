@@ -45,10 +45,13 @@
                 android:visibility="gone" />
 
             <LinearLayout
+                android:id="@+id/toolbarContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:focusable="false"
+                android:descendantFocusability="afterDescendants">
 
                 <dev.octoshrimpy.quik.common.widget.QkEditText
                     android:id="@+id/toolbarSearch"
@@ -71,7 +74,8 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:nextFocusRight="@+id/compose"
-                    android:nextFocusDown="@+id/recyclerView" />
+                    android:nextFocusDown="@+id/recyclerView"
+                    android:imeOptions="actionSearch" />
 
                 <ImageView
                     android:id="@+id/compose"
@@ -116,7 +120,8 @@
             app:layout_constraintBottom_toTopOf="@id/bottom"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             tools:listitem="@layout/conversation_list_item"
-            android:focusable="false"
+            android:focusable="true"
+            android:focusableInTouchMode="false"
             android:descendantFocusability="afterDescendants" />
 
         <View
