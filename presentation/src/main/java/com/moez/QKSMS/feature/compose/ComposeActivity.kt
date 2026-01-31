@@ -859,7 +859,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
             // Call button to send message
             KeyEvent.KEYCODE_CALL -> {
                 if (send.visibility == View.VISIBLE) {
-                    sendIntent.onNext(Unit)
+                    send.performClick()
                     return true
                 }
             }

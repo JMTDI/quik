@@ -488,37 +488,37 @@ class MainActivity : QkThemedActivity(), MainView {
             // Number keys for quick navigation
             KeyEvent.KEYCODE_1 -> {
                 // Navigate to Inbox
-                navigationIntent.onNext(NavItem.INBOX)
+                inbox.performClick()
                 return true
             }
             KeyEvent.KEYCODE_2 -> {
                 // Navigate to Archived
-                navigationIntent.onNext(NavItem.ARCHIVED)
+                archived.performClick()
                 return true
             }
             KeyEvent.KEYCODE_3 -> {
                 // Navigate to Settings
-                navigationIntent.onNext(NavItem.SETTINGS)
+                settings.performClick()
                 return true
             }
             KeyEvent.KEYCODE_4 -> {
                 // Navigate to Scheduled messages
-                navigationIntent.onNext(NavItem.SCHEDULED)
+                scheduled.performClick()
                 return true
             }
             KeyEvent.KEYCODE_5 -> {
                 // Navigate to Blocking
-                navigationIntent.onNext(NavItem.BLOCKING)
+                blocking.performClick()
                 return true
             }
             KeyEvent.KEYCODE_6 -> {
                 // Navigate to Backup
-                navigationIntent.onNext(NavItem.BACKUP)
+                backup.performClick()
                 return true
             }
             KeyEvent.KEYCODE_0 -> {
                 // Clear search / Clear selection
-                if (toolbarSearch.text.isNotEmpty()) {
+                if (toolbarSearch.text?.isNotEmpty() == true) {
                     clearSearch()
                 } else {
                     clearSelection()
@@ -553,7 +553,7 @@ class MainActivity : QkThemedActivity(), MainView {
             }
             // Call button to compose new message
             KeyEvent.KEYCODE_CALL -> {
-                composeIntent.onNext(Unit)
+                compose.performClick()
                 return true
             }
             // Volume keys for quick scroll
