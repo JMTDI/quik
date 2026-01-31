@@ -100,6 +100,15 @@ import kotlinx.android.synthetic.main.compose_activity.audioMsgBackground
 import kotlinx.android.synthetic.main.compose_activity.audioMsgBluetooth
 import kotlinx.android.synthetic.main.compose_activity.audioMsgDuration
 import kotlinx.android.synthetic.main.compose_activity.audioMsgPlayerBackground
+import kotlinx.android.synthetic.main.compose_activity.attachMenuCamera
+import kotlinx.android.synthetic.main.compose_activity.attachMenuGallery
+import kotlinx.android.synthetic.main.compose_activity.attachMenuAudio
+import kotlinx.android.synthetic.main.compose_activity.attachMenuFile
+import kotlinx.android.synthetic.main.compose_activity.attachMenuContact
+import kotlinx.android.synthetic.main.compose_activity.attachMenuSchedule
+import kotlinx.android.synthetic.main.compose_activity.attachMenuAddContact
+import kotlinx.android.synthetic.main.compose_activity.attachMenuClose
+import kotlinx.android.synthetic.main.compose_activity.attachMenuDpadContainer
 import kotlinx.android.synthetic.main.compose_activity.audioMsgPlayerPlayPause
 import kotlinx.android.synthetic.main.compose_activity.audioMsgPlayerSeekBar
 import kotlinx.android.synthetic.main.compose_activity.audioMsgRecord
@@ -413,6 +422,32 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                     override fun onStopTrackingTouch(p0: SeekBar?) {}
                 }
             )
+
+            // Wire up D-pad friendly attach menu items
+            attachMenuClose.setOnClickListener { 
+                attachIntent.onNext(Unit) // Toggle attach menu closed
+            }
+            attachMenuCamera.setOnClickListener { 
+                cameraIntent.onNext(Unit)
+            }
+            attachMenuGallery.setOnClickListener { 
+                attachImageFileIntent.onNext(Unit)
+            }
+            attachMenuAudio.setOnClickListener { 
+                recordAnAudioMessage.onNext(Unit)
+            }
+            attachMenuFile.setOnClickListener { 
+                attachAnyFileIntent.onNext(Unit)
+            }
+            attachMenuContact.setOnClickListener { 
+                attachContactIntent.onNext(Unit)
+            }
+            attachMenuSchedule.setOnClickListener { 
+                scheduleIntent.onNext(Unit)
+            }
+            attachMenuAddContact.setOnClickListener {
+                showContacts(false, chipsAdapter.data.toList())
+            }
 
             window.callback = ComposeWindowCallback(window.callback, this)
     }
