@@ -414,14 +414,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                 }
             )
 
-            // Wire up D-pad friendly attachment menu
-            attachMenuCamera.setOnClickListener { camera.performClick() }
-            attachMenuGallery.setOnClickListener { gallery.performClick() }
-            attachMenuAudio.setOnClickListener { recordAnAudioMessage.onNext(Unit) }
-            attachMenuFile.setOnClickListener { attachAFileIcon.performClick() }
-            attachMenuContact.setOnClickListener { contact.performClick() }
-            attachMenuSchedule.setOnClickListener { schedule.performClick() }
-
             window.callback = ComposeWindowCallback(window.callback, this)
     }
 
