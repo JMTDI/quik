@@ -74,7 +74,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/sendAsGroupBackground"
         app:stackFromEnd="true"
-        tools:listitem="@layout/message_list_item_in" />
+        tools:listitem="@layout/message_list_item_in"
+        android:descendantFocusability="afterDescendants" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/messagesEmpty"
@@ -287,7 +288,12 @@
         android:textColorHint="?android:attr/textColorTertiary"
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintEnd_toStartOf="@id/sim"
-        app:layout_constraintStart_toStartOf="@id/messageBackground">
+        app:layout_constraintStart_toStartOf="@id/messageBackground"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:nextFocusLeft="@+id/attach"
+        android:nextFocusRight="@+id/send"
+        android:nextFocusUp="@+id/messageList">
 
         <requestFocus />
     </dev.octoshrimpy.quik.common.widget.QkEditText>
@@ -346,7 +352,10 @@
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="?android:textColorSecondary"
-        tools:visibility="visible" />
+        tools:visibility="visible"
+        android:focusable="true"
+        android:nextFocusLeft="@+id/message"
+        android:nextFocusUp="@+id/messageList" />
 
     <ImageView
         android:id="@+id/scheduledSend"
@@ -644,7 +653,7 @@
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:layout_marginStart="12dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/circle_focus_highlight"
         android:contentDescription="@string/compose_attach_cd"
         android:elevation="4dp"
         android:padding="10dp"
@@ -652,7 +661,10 @@
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintStart_toStartOf="parent"
         tools:backgroundTint="@color/tools_theme"
-        tools:tint="@color/textPrimaryDark" />
+        tools:tint="@color/textPrimaryDark"
+        android:focusable="true"
+        android:nextFocusRight="@+id/message"
+        android:nextFocusUp="@+id/messageList" />
 
     <TextView
         android:id="@+id/noValidRecipients"

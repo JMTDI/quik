@@ -21,9 +21,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:background="@drawable/selectable_item_background_focus"
     android:gravity="center_vertical"
     android:orientation="horizontal"
+    android:focusable="true"
+    android:clickable="true"
     tools:parentTag="dev.octoshrimpy.quik.common.widget.PreferenceView">
 
     <ImageView
