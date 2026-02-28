@@ -484,6 +484,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
 
         // show or hide audio message recording panel and shade background
         binding.audioMsgBackground.isVisible = state.audioMsgRecording
+        // D-pad: move focus to the record button when the audio overlay becomes visible
+        if (state.audioMsgRecording) binding.audioMsgRecord.requestFocus()
 
         binding.counter.text = state.remaining
         binding.counter.setVisible(binding.counter.text.isNotBlank())
