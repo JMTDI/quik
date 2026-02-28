@@ -1,6 +1,7 @@
 package dev.octoshrimpy.quik.feature.conversationinfo
 
 import android.content.Context
+import android.graphics.Rect
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -43,6 +44,14 @@ class ConversationInfoAdapter @Inject constructor(
             0 -> {
                 val binding = ConversationRecipientListItemBinding.inflate(inflater, parent, false)
                 QkViewHolder(binding.root).apply {
+                    // D-pad: recipient items must be focusable and scroll into view.
+                    itemView.isFocusable = true
+                    itemView.isFocusableInTouchMode = false
+                    itemView.setOnFocusChangeListener { v, hasFocus ->
+                        if (hasFocus) {
+                            v.requestRectangleOnScreen(Rect(0, 0, v.width, v.height), false)
+                        }
+                    }
                     itemView.setOnClickListener {
                         val item = getItem(adapterPosition) as? ConversationInfoRecipient
                         item?.value?.id?.run(recipientClicks::onNext)

@@ -25,6 +25,8 @@ import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
+import android.view.KeyEvent
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -478,6 +480,37 @@ class MainActivity : QkThemedActivity(), MainView {
 
     override fun onOptionsItemSelected(item: MenuItem) =
         optionsItemIntent.onNext(item.itemId).let { true }
+
+    /**
+     * D-pad / flip-phone: KEYCODE_MENU opens or closes the navigation drawer, providing a
+     * hardware-key alternative to swiping the drawer open.  KEYCODE_BACK closes the drawer
+     * before triggering the normal back-stack pop so users on flip phones can dismiss it
+     * without accidentally leaving the activity.
+     *
+     * All other keys fall through to QkActivity's base handler which converts
+     * DPAD_CENTER / ENTER into performClick() on the focused view.
+     */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_MENU -> {
+                // Toggle the drawer open/closed with the hardware Menu key
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
+                    binding.drawerLayout.openDrawer(GravityCompat.START)
+                }
+                return true
+            }
+            KeyEvent.KEYCODE_BACK -> {
+                // If the drawer is open, close it first instead of leaving the activity
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 
     override fun onBackPressed() = backPressedSubject.onNext(NavItem.BACK)
 

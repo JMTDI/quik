@@ -33,12 +33,14 @@
         android:padding="56dp"
         android:text="@string/blocked_messages_empty" />
 
+    <!-- D-pad: RecyclerView must be focusable so arrow keys can navigate the conversation list. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/conversations"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
+        android:focusable="true"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/blocked_list_item" />
 

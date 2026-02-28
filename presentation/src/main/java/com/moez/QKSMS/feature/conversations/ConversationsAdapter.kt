@@ -19,6 +19,7 @@
 package dev.octoshrimpy.quik.feature.conversations
 
 import android.content.Context
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -75,6 +76,18 @@ class ConversationsAdapter @Inject constructor(
         }
 
         return QkBindingViewHolder(binding).apply {
+            // D-pad / flip-phone: make the row focusable so arrow keys can reach it.
+            // The foreground focus_selector draws a visible border while focused.
+            binding.root.isFocusable = true
+            binding.root.isFocusableInTouchMode = false  // touch mode keeps normal ripple behaviour
+
+            // D-pad: when this item gains focus, ask the RecyclerView to scroll it fully into view
+            binding.root.setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus) {
+                    view.requestRectangleOnScreen(Rect(0, 0, view.width, view.height), false)
+                }
+            }
+
             binding.root.setOnClickListener {
                 val conversation = getItem(adapterPosition) ?: return@setOnClickListener
                 when (toggleSelection(conversation.id, false)) {

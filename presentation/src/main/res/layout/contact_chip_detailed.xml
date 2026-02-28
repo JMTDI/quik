@@ -75,11 +75,15 @@
         tools:textColor="@color/textTertiaryDark"
         android:textDirection="ltr" />
 
+    <!-- D-pad: delete button in contact chip must be focusable for arrow-key access. -->
     <ImageView
         android:id="@+id/delete"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:background="?attr/selectableItemBackground"
+        android:focusable="true"
+        android:focusableInTouchMode="false"
+        android:foreground="@drawable/focus_selector"
         android:padding="16dp"
         android:src="@drawable/ic_cancel_black_24dp"
         app:layout_constraintEnd_toEndOf="parent"

@@ -26,22 +26,7 @@
     android:orientation="vertical"
     tools:context="dev.octoshrimpy.quik.feature.compose.ComposeActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/contacts"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="?android:attr/windowBackground"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        tools:listitem="@layout/contact_list_item"
-        android:textDirection="ltr" />
+    <!-- D-pad: RecyclerView must be focusable so arrow keys can navigate the contact list. -->\n    <androidx.recyclerview.widget.RecyclerView\n        android:id=\"@+id/contacts\"\n        android:layout_width=\"0dp\"\n        android:layout_height=\"0dp\"\n        android:background=\"?android:attr/windowBackground\"\n        android:clipChildren=\"false\"\n        android:clipToPadding=\"false\"\n        android:paddingTop=\"8dp\"\n        android:paddingBottom=\"8dp\"\n        android:focusable=\"true\"\n        app:layoutManager=\"androidx.recyclerview.widget.LinearLayoutManager\"\n        app:layout_constraintBottom_toBottomOf=\"parent\"\n        app:layout_constraintEnd_toEndOf=\"parent\"\n        app:layout_constraintStart_toStartOf=\"parent\"\n        app:layout_constraintTop_toBottomOf=\"@id/toolbar\"\n        tools:listitem=\"@layout/contact_list_item\"\n        android:textDirection=\"ltr\" />
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"

@@ -52,6 +52,7 @@
         app:textSize="secondary"
         tools:text="Make QUIK your default SMS app" />
 
+    <!-- D-pad: permission/default-SMS action button must be reachable by arrow keys. -->
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/snackbarButton"
         android:layout_width="wrap_content"
@@ -62,6 +63,11 @@
         android:textAllCaps="true"
         android:textColor="@color/tools_theme"
         android:textStyle="bold"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/recyclerView"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toBottomOf="@id/snackbarMessage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/snackbarTitle"

@@ -20,6 +20,7 @@ package dev.octoshrimpy.quik.feature.compose
 
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
@@ -169,6 +170,14 @@ class MessagesAdapter @Inject constructor(
         partContextMenuRegistrar.onNext(parts)
 
         return QkViewHolder(view).apply {
+            // D-pad: message items must be focusable and scroll into view on arrow-key nav.
+            view.isFocusable = true
+            view.isFocusableInTouchMode = false
+            view.setOnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    v.requestRectangleOnScreen(Rect(0, 0, v.width, v.height), false)
+                }
+            }
             view.setOnClickListener {
                 getItem(adapterPosition)?.let {
                     when (toggleSelection(it.id, false)) {

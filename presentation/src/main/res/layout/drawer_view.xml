@@ -31,9 +31,11 @@
         android:paddingTop="8dp"
         android:paddingBottom="8dp">
 
+        <!-- D-pad: inbox row — first item; nextFocusDown goes to archived. -->
         <LinearLayout
             android:id="@+id/inbox"
-            style="@style/DrawerRow">
+            style="@style/DrawerRow"
+            android:nextFocusDown="@+id/archived">
 
             <ImageView
                 android:id="@+id/inboxIcon"
@@ -47,9 +49,12 @@
 
         </LinearLayout>
 
+        <!-- D-pad: archived row. -->
         <LinearLayout
             android:id="@+id/archived"
-            style="@style/DrawerRow">
+            style="@style/DrawerRow"
+            android:nextFocusUp="@+id/inbox"
+            android:nextFocusDown="@+id/backup">
 
             <ImageView
                 android:id="@+id/archivedIcon"
@@ -70,9 +75,12 @@
             android:layout_marginBottom="8dp"
             android:background="?android:attr/divider" />
 
+        <!-- D-pad: backup row. -->
         <LinearLayout
             android:id="@+id/backup"
-            style="@style/DrawerRow">
+            style="@style/DrawerRow"
+            android:nextFocusUp="@+id/archived"
+            android:nextFocusDown="@+id/scheduled">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -97,9 +105,12 @@
 
         </LinearLayout>
 
+        <!-- D-pad: scheduled row. -->
         <LinearLayout
             android:id="@+id/scheduled"
-            style="@style/DrawerRow">
+            style="@style/DrawerRow"
+            android:nextFocusUp="@+id/backup"
+            android:nextFocusDown="@+id/blocking">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -124,9 +135,12 @@
 
         </LinearLayout>
 
+        <!-- D-pad: blocking row. -->
         <LinearLayout
             android:id="@+id/blocking"
-            style="@style/DrawerRow">
+            style="@style/DrawerRow"
+            android:nextFocusUp="@+id/scheduled"
+            android:nextFocusDown="@+id/messageUtils">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -139,9 +153,12 @@
 
         </LinearLayout>
 
+        <!-- D-pad: message utils row. -->
         <LinearLayout
             android:id="@+id/messageUtils"
-            style="@style/DrawerRow">
+            style="@style/DrawerRow"
+            android:nextFocusUp="@+id/blocking"
+            android:nextFocusDown="@+id/settings">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -161,9 +178,12 @@
             android:layout_marginBottom="8dp"
             android:background="?android:attr/divider" />
 
+        <!-- D-pad: settings row. -->
         <LinearLayout
             android:id="@+id/settings"
-            style="@style/DrawerRow">
+            style="@style/DrawerRow"
+            android:nextFocusUp="@+id/messageUtils"
+            android:nextFocusDown="@+id/invite">
 
             <ImageView
                 style="@style/DrawerIcon"
@@ -206,9 +226,11 @@
 
 <!--        </LinearLayout>-->
 
+        <!-- D-pad: invite row — last item; nextFocusUp returns to settings. -->
         <LinearLayout
             android:id="@+id/invite"
-            style="@style/DrawerRow">
+            style="@style/DrawerRow"
+            android:nextFocusUp="@+id/settings">
 
             <ImageView
                 style="@style/DrawerIcon"

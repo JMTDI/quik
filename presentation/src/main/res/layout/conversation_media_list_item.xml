@@ -17,10 +17,14 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
   -->
+<!-- D-pad: media thumbnail items must be focusable for arrow-key navigation. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:focusableInTouchMode="false"
+    android:foreground="@drawable/focus_selector">
 
     <dev.octoshrimpy.quik.common.widget.SquareImageView
         android:id="@+id/thumbnail"

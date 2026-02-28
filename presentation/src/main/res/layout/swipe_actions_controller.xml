@@ -30,11 +30,16 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- D-pad: right swipe action row must be reachable by arrow keys. -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/right"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:foreground="?attr/selectableItemBackground">
+            android:focusable="true"
+            android:focusableInTouchMode="false"
+            android:clickable="true"
+            android:nextFocusDown="@+id/left"
+            android:foreground="@drawable/focus_selector">
 
             <dev.octoshrimpy.quik.common.widget.QkTextView
                 android:id="@+id/rightTitle"
@@ -151,11 +156,16 @@
             android:layout_height="1dp"
             android:background="?android:attr/divider" />
 
+        <!-- D-pad: left swipe action row must be reachable by arrow keys. -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/left"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:foreground="?attr/selectableItemBackground">
+            android:focusable="true"
+            android:focusableInTouchMode="false"
+            android:clickable="true"
+            android:nextFocusUp="@+id/right"
+            android:foreground="@drawable/focus_selector">
 
             <dev.octoshrimpy.quik.common.widget.QkTextView
                 android:id="@+id/leftTitle"

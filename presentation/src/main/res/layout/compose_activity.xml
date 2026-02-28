@@ -333,6 +333,8 @@
         app:textSize="tertiary"
         tools:text="108 / 2" />
 
+    <!-- D-pad: send button is the rightmost compose-bar control.
+         nextFocusLeft moves focus back to the message field. -->
     <ImageView
         android:id="@+id/send"
         android:layout_width="44dp"
@@ -343,11 +345,18 @@
         android:padding="10dp"
         android:src="@drawable/ic_send_black_24dp"
         android:visibility="invisible"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusLeft="@+id/message"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="?android:textColorSecondary"
         tools:visibility="visible" />
 
+    <!-- D-pad: scheduled-send replaces the normal send button when a schedule is set.
+         Same navigation rules as the regular send button. -->
     <ImageView
         android:id="@+id/scheduledSend"
         android:layout_width="44dp"
@@ -358,6 +367,11 @@
         android:src="@drawable/ic_schedule_send_black_24dp"
         android:padding="10dp"
         android:visibility="gone"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusLeft="@+id/message"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="?android:textColorSecondary"
@@ -434,6 +448,7 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="gone" />
 
+    <!-- D-pad: attachment overlay — contact picker button. -->
     <ImageView
         android:id="@+id/contact"
         android:layout_width="40dp"
@@ -446,6 +461,11 @@
         android:padding="10dp"
         android:src="@drawable/ic_person_black_24dp"
         android:visibility="visible"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusDown="@+id/schedule"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toTopOf="@id/schedule"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
@@ -468,6 +488,7 @@
         app:layout_constraintStart_toEndOf="@id/contact"
         app:layout_constraintTop_toTopOf="@id/contact" />
 
+    <!-- D-pad: schedule picker button in the attachment overlay. -->
     <ImageView
         android:id="@+id/schedule"
         android:layout_width="40dp"
@@ -480,6 +501,12 @@
         android:padding="10dp"
         android:src="@drawable/ic_event_black_24dp"
         android:visibility="visible"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/contact"
+        android:nextFocusDown="@+id/attachAFileIcon"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toTopOf="@id/attachAFileIcon"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
@@ -502,6 +529,7 @@
         app:layout_constraintStart_toEndOf="@id/schedule"
         app:layout_constraintTop_toTopOf="@id/schedule" />
 
+    <!-- D-pad: file attachment button in the overlay. -->
     <ImageView
         android:id="@+id/attachAFileIcon"
         android:layout_width="40dp"
@@ -515,6 +543,12 @@
         android:rotation="-45"
         android:src="@drawable/ic_attachment_black_24dp"
         android:visibility="visible"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/schedule"
+        android:nextFocusDown="@+id/attachAnAudioMessageIcon"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toTopOf="@id/attachAnAudioMessageIcon"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
@@ -537,6 +571,7 @@
         app:layout_constraintStart_toEndOf="@id/attachAFileIcon"
         app:layout_constraintTop_toTopOf="@id/attachAFileIcon" />
 
+    <!-- D-pad: audio message attachment button in the overlay. -->
     <ImageView
         android:id="@+id/attachAnAudioMessageIcon"
         android:layout_width="40dp"
@@ -549,6 +584,12 @@
         android:padding="10dp"
         android:src="@android:drawable/ic_btn_speak_now"
         android:visibility="visible"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/attachAFileIcon"
+        android:nextFocusDown="@+id/gallery"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toTopOf="@id/gallery"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
@@ -571,6 +612,7 @@
         app:layout_constraintStart_toEndOf="@id/attachAnAudioMessageIcon"
         app:layout_constraintTop_toTopOf="@id/attachAnAudioMessageIcon" />
 
+    <!-- D-pad: gallery (photo picker) button in the overlay. -->
     <ImageView
         android:id="@+id/gallery"
         android:layout_width="40dp"
@@ -583,6 +625,12 @@
         android:padding="10dp"
         android:src="@drawable/ic_insert_photo_black_24dp"
         android:visibility="visible"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/attachAnAudioMessageIcon"
+        android:nextFocusDown="@+id/camera"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toTopOf="@id/camera"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
@@ -605,6 +653,8 @@
         app:layout_constraintStart_toEndOf="@id/gallery"
         app:layout_constraintTop_toTopOf="@id/gallery" />
 
+    <!-- D-pad: camera button — lowest item in overlay, nextFocusDown returns to
+         the attach/message compose bar. -->
     <ImageView
         android:id="@+id/camera"
         android:layout_width="40dp"
@@ -617,6 +667,12 @@
         android:padding="10dp"
         android:src="@drawable/ic_camera_alt_black_24dp"
         android:visibility="visible"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusUp="@+id/gallery"
+        android:nextFocusDown="@+id/attach"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toTopOf="@id/attach"
         app:layout_constraintEnd_toEndOf="@id/attach"
         app:layout_constraintStart_toStartOf="@id/attach"
@@ -639,6 +695,8 @@
         app:layout_constraintStart_toEndOf="@id/gallery"
         app:layout_constraintTop_toTopOf="@id/camera" />
 
+    <!-- D-pad: attach button is the leftmost compose-bar control.
+         nextFocusRight moves focus to the message text field. -->
     <ImageView
         android:id="@+id/attach"
         android:layout_width="44dp"
@@ -649,6 +707,11 @@
         android:elevation="4dp"
         android:padding="10dp"
         android:src="@drawable/ic_add_black_24dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusRight="@+id/message"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintStart_toStartOf="parent"
         tools:backgroundTint="@color/tools_theme"
@@ -668,6 +731,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
+    <!-- D-pad: record audio message button replaces send when voice recording is active. -->
     <ImageView
         android:id="@+id/recordAudioMsg"
         android:layout_width="44dp"
@@ -677,6 +741,11 @@
         android:contentDescription="@string/compose_record_audio_msg_cd"
         android:padding="8dp"
         android:src="@android:drawable/ic_btn_speak_now"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusLeft="@+id/message"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="?android:textColorSecondary" />

@@ -20,6 +20,7 @@ package dev.octoshrimpy.quik.common.base
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -94,6 +95,53 @@ abstract class QkActivity : AppCompatActivity() {
 
     protected open fun showBackButton(show: Boolean) {
         supportActionBar?.setDisplayHomeAsUpEnabled(show)
+    }
+
+    /**
+     * D-pad / flip-phone compatibility.
+     *
+     * DPAD_CENTER and ENTER simulate a click on the currently focused view so that every
+     * button, list item, or interactive widget in the activity can be activated with hardware
+     * keys without any touch input.
+     *
+     * Subclasses that need additional key handling (e.g. KEYCODE_MENU to open a drawer) should
+     * call super.onKeyDown() first and only handle keys that return false here.
+     */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            // D-pad center or Enter: confirm / click the focused view
+            KeyEvent.KEYCODE_DPAD_CENTER,
+            KeyEvent.KEYCODE_ENTER -> {
+                // Request long-press tracking so onKeyLongPress can fire
+                event?.startTracking()
+                currentFocus?.let { focused ->
+                    // Only perform click if the view is a leaf interactive element, not a
+                    // container, so we don't accidentally swallow events meant for an EditText.
+                    if (focused.isClickable) {
+                        focused.performClick()
+                        return true
+                    }
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    /**
+     * D-pad / flip-phone: long-pressing D-pad center or Enter simulates a long-click on the
+     * focused view.  This provides a keyboard equivalent for touch-only long-press actions such
+     * as entering multi-select mode in conversation lists.
+     */
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+            currentFocus?.let { focused ->
+                if (focused.isLongClickable) {
+                    focused.performLongClick()
+                    return true
+                }
+            }
+        }
+        return super.onKeyLongPress(keyCode, event)
     }
 
     private fun disableScreenshots(disableScreenshots: Boolean) {

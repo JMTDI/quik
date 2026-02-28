@@ -81,6 +81,12 @@ class PreferenceView @JvmOverloads constructor(
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
 
+        // D-pad / flip-phone: make every preference row reachable by arrow keys.
+        // The focus_selector foreground draws a visible border when the row is focused.
+        isFocusable = true
+        isFocusableInTouchMode = false  // do not steal focus during normal touch scrolling
+        foreground = context.getDrawable(R.drawable.focus_selector)
+
         layout.icon.imageTintList = context.resolveThemeColorStateList(android.R.attr.textColorSecondary)
 
         context.obtainStyledAttributes(attrs, R.styleable.PreferenceView).run {

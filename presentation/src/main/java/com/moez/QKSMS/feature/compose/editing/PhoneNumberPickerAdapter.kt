@@ -50,6 +50,12 @@ class PhoneNumberPickerAdapter @Inject constructor(
         val inflater = LayoutInflater.from(parent.context)
         val binding = PhoneNumberListItemBinding.inflate(inflater, parent, false)
         return QkBindingViewHolder(binding).apply {
+            // D-pad: root FrameLayout holds the click handler; disable inner RadioPreferenceView
+            // focusability so the root (which is clickable) receives D-pad focus and clicks.
+            binding.number.isFocusable = false
+            binding.root.isFocusable = true
+            binding.root.isFocusableInTouchMode = false
+
             binding.number.radioButton.forwardTouches(itemView)
 
             binding.root.setOnClickListener {

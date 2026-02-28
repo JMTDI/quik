@@ -76,6 +76,7 @@
         app:layout_constraintStart_toStartOf="@id/message"
         app:layout_constraintTop_toTopOf="@id/message" />
 
+    <!-- D-pad: reply EditText — nextFocusRight moves to the send button. -->
     <dev.octoshrimpy.quik.common.widget.QkEditText
         android:id="@+id/message"
         style="@style/TextPrimary"
@@ -95,6 +96,7 @@
         android:paddingEnd="16dp"
         android:paddingBottom="12dp"
         android:textColorHint="?android:attr/textColorTertiary"
+        android:nextFocusRight="@+id/send"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/sim"
         app:layout_constraintStart_toStartOf="parent" />
@@ -139,6 +141,7 @@
         app:textSize="tertiary"
         tools:text="108 / 2" />
 
+    <!-- D-pad: send button — focusable with nextFocusLeft back to the message field. -->
     <ImageView
         android:id="@+id/send"
         android:layout_width="44dp"
@@ -147,6 +150,11 @@
         android:contentDescription="@string/compose_send_cd"
         android:padding="10dp"
         android:src="@drawable/ic_send_black_24dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusLeft="@+id/message"
+        android:foreground="@drawable/focus_selector"
         app:tint="?android:textColorSecondary"
         app:layout_constraintBottom_toBottomOf="@id/message"
         app:layout_constraintEnd_toEndOf="parent"

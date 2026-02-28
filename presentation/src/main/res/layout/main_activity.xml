@@ -24,10 +24,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- D-pad: afterDescendants lets arrow keys move focus inside RecyclerView items
+         rather than consuming focus at the ConstraintLayout level. -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:animateLayoutChanges="true">
+        android:animateLayoutChanges="true"
+        android:descendantFocusability="afterDescendants">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -91,6 +94,9 @@
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             tools:listitem="@layout/conversation_list_item" />
 
+        <!-- D-pad: compose FAB is focusable so the user can reach it with arrow keys.
+             nextFocusLeft moves focus back into the conversation list.
+             foreground draws the focus_selector border when selected by keyboard. -->
         <ImageView
             android:id="@+id/compose"
             android:layout_width="56dp"
@@ -101,6 +107,12 @@
             android:elevation="8dp"
             android:padding="16dp"
             android:src="@drawable/ic_add_black_24dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:clickable="true"
+            android:nextFocusLeft="@+id/recyclerView"
+            android:nextFocusUp="@+id/toolbarSearch"
+            android:foreground="@drawable/focus_selector"
             app:layout_constraintBottom_toTopOf="@id/bottom"
             app:layout_constraintEnd_toEndOf="parent"
             tools:backgroundTint="@color/tools_theme"

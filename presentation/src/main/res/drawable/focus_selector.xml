@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    D-pad / flip-phone compatibility: focus highlight applied as android:foreground on
+    every focusable interactive view (list items, buttons, dialogs).  Shows a 2 dp
+    accent-coloured border while the view is keyboard-focused; transparent otherwise.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Focused state: thin coloured border so the user can see which item is active -->
+    <item android:state_focused="true" android:state_pressed="false">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="2dp"
+                android:color="?android:attr/colorAccent" />
+            <corners android:radius="4dp" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <!-- All other states: fully transparent, no visible foreground -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+
+</selector>

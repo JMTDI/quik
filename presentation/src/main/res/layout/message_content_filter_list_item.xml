@@ -17,11 +17,16 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
   -->
+<!-- D-pad: root is focusable so arrow keys can navigate message content filter items. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="48dp"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:background="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:focusableInTouchMode="false"
+    android:foreground="@drawable/focus_selector">
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/filter"
@@ -58,6 +63,7 @@
         android:src="@drawable/ic_person_black_24dp"
         android:tint="?android:attr/textColorSecondary" />
 
+    <!-- D-pad: remove (X) button is separately focusable so the user can delete a filter. -->
     <ImageView
         android:id="@+id/removeFilter"
         android:layout_width="48dp"
@@ -67,6 +73,10 @@
         android:background="?android:attr/selectableItemBackground"
         android:padding="12dp"
         android:src="@drawable/ic_close_black_24dp"
-        android:tint="?android:attr/textColorSecondary" />
+        android:tint="?android:attr/textColorSecondary"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:foreground="@drawable/focus_selector" />
 
 </LinearLayout>

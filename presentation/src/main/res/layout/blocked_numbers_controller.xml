@@ -25,6 +25,7 @@
     android:background="?android:attr/windowBackground"
     android:orientation="vertical">
 
+    <!-- D-pad: RecyclerView must be focusable so arrow keys can enter the list. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/numbers"
         android:layout_width="match_parent"
@@ -32,6 +33,7 @@
         android:clipToPadding="false"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
+        android:focusable="true"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     <dev.octoshrimpy.quik.common.widget.QkTextView
@@ -42,6 +44,8 @@
         android:text="@string/blocked_numbers_empty"
         android:textColor="?android:attr/textColorTertiary" />
 
+    <!-- D-pad: add (FAB) button — focusable so it can be reached by pressing right
+         from the list, or directly with DPAD_CENTER to add a new blocked number. -->
     <ImageView
         android:id="@+id/add"
         android:layout_width="56dp"
@@ -53,6 +57,10 @@
         android:elevation="8dp"
         android:padding="16dp"
         android:src="@drawable/ic_add_black_24dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:foreground="@drawable/focus_selector"
         app:tint="@color/white"
         tools:backgroundTint="@color/tools_theme" />
 

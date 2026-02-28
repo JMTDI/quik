@@ -81,6 +81,7 @@
                     app:textSize="secondary"
                     tools:text="8 minutes remaining" />
 
+                <!-- D-pad: cancel button for backup/restore progress must be focusable. -->
                 <ImageView
                     android:id="@+id/progressCancel"
                     android:layout_width="56dp"
@@ -88,6 +89,10 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="16dp"
                     android:src="@drawable/ic_close_black_24dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:clickable="true"
+                    android:foreground="@drawable/focus_selector"
                     app:tint="?android:attr/textColorSecondary"
                     app:layout_constraintBottom_toBottomOf="@id/progressSummary"
                     app:layout_constraintEnd_toEndOf="parent"

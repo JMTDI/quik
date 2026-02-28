@@ -81,6 +81,12 @@ class RadioPreferenceView @JvmOverloads constructor(
         layout = RadioPreferenceViewBinding.inflate(LayoutInflater.from(context), this)
         setBackgroundResource(context.resolveThemeAttribute(R.attr.selectableItemBackground))
 
+        // D-pad / flip-phone: RadioPreferenceView rows (used in dialogs for phone number
+        // selection) must be reachable by arrow keys.
+        isFocusable = true
+        isFocusableInTouchMode = false
+        foreground = context.getDrawable(R.drawable.focus_selector)
+
         val states = arrayOf(
                 intArrayOf(android.R.attr.state_checked),
                 intArrayOf(-android.R.attr.state_checked))

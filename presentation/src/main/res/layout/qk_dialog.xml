@@ -55,6 +55,7 @@
         tools:text="Moez Bhatti"
         tools:visibility="visible" />
 
+    <!-- D-pad: list RecyclerView must be focusable so arrow keys can move through items. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"
         android:layout_width="match_parent"
@@ -62,6 +63,7 @@
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:visibility="gone"
+        android:focusable="true"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constrainedHeight="true"
         app:layout_constraintBottom_toTopOf="@id/positiveButton"
@@ -70,6 +72,7 @@
         tools:listitem="@layout/phone_number_list_item"
         tools:visibility="visible" />
 
+    <!-- D-pad: positive (confirm) button. nextFocusLeft navigates to negativeButton. -->
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/positiveButton"
         android:layout_width="wrap_content"
@@ -81,6 +84,12 @@
         android:textColor="?android:attr/textColorSecondary"
         android:textStyle="bold"
         android:visibility="gone"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusLeft="@+id/negativeButton"
+        android:nextFocusUp="@+id/list"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/list"
@@ -89,6 +98,7 @@
         tools:text="Always"
         tools:visibility="visible" />
 
+    <!-- D-pad: negative (cancel/dismiss) button. nextFocusRight navigates to positiveButton. -->
     <dev.octoshrimpy.quik.common.widget.QkTextView
         android:id="@+id/negativeButton"
         android:layout_width="wrap_content"
@@ -99,6 +109,12 @@
         android:textColor="?android:attr/textColorSecondary"
         android:textStyle="bold"
         android:visibility="gone"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:nextFocusRight="@+id/positiveButton"
+        android:nextFocusUp="@+id/list"
+        android:foreground="@drawable/focus_selector"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/positiveButton"
         app:layout_constraintTop_toBottomOf="@id/list"

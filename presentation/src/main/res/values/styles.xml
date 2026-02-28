@@ -102,6 +102,8 @@
         <item name="textSize">primary</item>
     </style>
 
+    <!-- D-pad: focusable + clickable so arrow keys can land on drawer rows.
+         foreground draws the focus_selector border when the row is selected by keyboard. -->
     <style name="DrawerRow">
         <item name="android:layout_height">48dp</item>
         <item name="android:layout_width">match_parent</item>
@@ -109,6 +111,9 @@
         <item name="android:gravity">center_vertical</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:foreground">@drawable/focus_selector</item>
     </style>
 
     <style name="DrawerText">
