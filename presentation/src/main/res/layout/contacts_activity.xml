@@ -37,6 +37,7 @@
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:focusable="true"
+        android:nextFocusUp="@+id/search"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -75,6 +76,7 @@
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:textColorHint="?android:attr/textColorTertiary"
+                android:nextFocusDown="@+id/contacts"
                 app:textSize="primary"
                 tools:textSize="16sp" />
 
