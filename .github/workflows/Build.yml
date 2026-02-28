@@ -1,4 +1,4 @@
-name: Build
+name: Build and Release
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
       publish_release:
         description: Publish the GitHub Release immediately (disable to keep it as a draft)
         type: boolean
-        default: false
+        default: true
       prerelease:
         description: Mark the GitHub Release as a pre-release
         type: boolean
@@ -34,10 +34,8 @@ jobs:
 
     outputs:
       version_name: ${{ steps.version.outputs.version_name }}
-      version_code: ${{ steps.version.outputs.version_code }}
       tag_name: ${{ steps.version.outputs.tag_name }}
       apk_release_path: ${{ steps.release_artifact.outputs.apk_release_path }}
-      apk_fdroid_path: ${{ steps.fdroid_artifact.outputs.apk_fdroid_path }}
       checksums_path: ${{ steps.checksums.outputs.checksums_path }}
 
     steps:
@@ -55,26 +53,6 @@ jobs:
           if ! git merge-base --is-ancestor HEAD origin/master; then
             echo "::error title=Release blocked::${RELEASE_REF} is not merged into master. Merge the release PR first."
             exit 1
-          fi
-
-      - name: Checkout published F-Droid repo (if available)
-        id: checkout_pages
-        continue-on-error: true
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
-
-      - name: Restore previous F-Droid artifacts
-        if: steps.checkout_pages.outcome == 'success'
-        run: |
-          set -euo pipefail
-          if [[ -d gh-pages/fdroid ]]; then
-            rm -rf repo
-            mkdir -p repo
-            cp -a gh-pages/fdroid/. repo/
-          else
-            mkdir -p repo
           fi
 
       - name: Set up JDK 17
@@ -129,7 +107,6 @@ jobs:
               raise SystemExit("Unable to read versionCode/versionName from presentation/build.gradle")
           out = pathlib.Path(os.environ["GITHUB_OUTPUT"])
           out.write_text(
-              f"version_code={code_match.group(1)}\n"
               f"version_name={name_match.group(1)}\n"
               f"tag_name=v{name_match.group(1)}\n"
           )
@@ -139,7 +116,7 @@ jobs:
         uses: gradle/wrapper-validation-action@v1
 
       - name: Build signed release APK
-        run: ./gradlew clean assembleRelease assembleFdroid
+        run: ./gradlew clean assembleRelease
 
       - name: Locate release artifact
         id: release_artifact
@@ -154,19 +131,6 @@ jobs:
           fi
           echo "apk_release_path=${files[0]}" >> "$GITHUB_OUTPUT"
 
-      - name: Locate f-droid artifact
-        id: fdroid_artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          files=(presentation/build/outputs/apk/fdroid/QUIK-v*-fdroid.apk)
-          if [[ "${#files[@]}" -ne 1 ]]; then
-            echo "::error title=APK lookup failed::Expected 1 APK, found ${#files[@]} (${files[*]:-none})."
-            exit 1
-          fi
-          echo "apk_fdroid_path=${files[0]}" >> "$GITHUB_OUTPUT"
-
       - name: Generate checksum
         id: checksums
         shell: bash
@@ -180,8 +144,59 @@ jobs:
           name: build-artifacts
           path: |
             ${{ steps.release_artifact.outputs.apk_release_path }}
-            ${{ steps.fdroid_artifact.outputs.apk_fdroid_path }}
             ${{ steps.checksums.outputs.checksums_path }}
+
+  generate_release_notes:
+    needs: build
+    uses: ./.github/workflows/generate-release-notes.yml
+    with:
+      release_ref: ${{ inputs.release_ref || 'master' }}
+      version_name: ${{ needs.build.outputs.version_name }}
+
+  publish:
+    needs: [build, generate_release_notes]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sanitize release notes
+        id: clean_notes
+        env:
+          NOTES: ${{ needs.generate_release_notes.outputs.release_notes }}
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import os, re, pathlib
+          notes = os.environ.get("NOTES", "")
+          clean = re.sub(r'(?<!\w)@([A-Za-z0-9][A-Za-z0-9-]*)', r'\1', notes)
+          pathlib.Path("sanitized_notes.txt").write_text(clean)
+          PY
+          {
+            echo "clean_notes<<EOF"
+            cat sanitized_notes.txt
+            echo ""
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: downloaded/
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.build.outputs.tag_name }}
+          name: QUIK v${{ needs.build.outputs.version_name }}
+          draft: ${{ inputs.publish_release != true }}
+          prerelease: ${{ inputs.prerelease }}
+          body: ${{ steps.clean_notes.outputs.clean_notes }}
+          files: |
+            downloaded/**/*.apk
+            downloaded/*.txt
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cleanup signing key
         if: always()
