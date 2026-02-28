@@ -26,7 +26,6 @@ import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.KeyEvent
-import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
