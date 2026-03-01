@@ -427,8 +427,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
                 && state.query.isEmpty() && state.hasScheduledMessages
         binding.toolbar.menu.findItem(R.id.select_all)?.isVisible = !state.editingMode && (messageAdapter.itemCount > 1) && state.selectedMessages != 0
         binding.toolbar.menu.findItem(R.id.add)?.isVisible = state.editingMode
-        binding.toolbar.menu.findItem(R.id.call)?.isVisible = !state.editingMode && state.selectedMessages == 0
-                && state.query.isEmpty()
         binding.toolbar.menu.findItem(R.id.info)?.isVisible = !state.editingMode && state.selectedMessages == 0
                 && state.query.isEmpty()
         binding.toolbar.menu.findItem(R.id.copy)?.isVisible =
@@ -733,7 +731,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         when (keyCode) {
             KeyEvent.KEYCODE_MENU,
             KeyEvent.KEYCODE_SOFT_LEFT -> {
-                openOptionsMenu()
+                optionsItemIntent.onNext(R.id.info)
                 return true
             }
         }

@@ -19,14 +19,23 @@
 package dev.octoshrimpy.quik.feature.conversationinfo
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.RouterTransaction
 import dagger.android.AndroidInjection
+import dev.octoshrimpy.quik.R
+import dev.octoshrimpy.quik.common.Navigator
 import dev.octoshrimpy.quik.common.base.QkThemedActivity
 import dev.octoshrimpy.quik.databinding.ContainerActivityBinding
+import dev.octoshrimpy.quik.repository.ConversationRepository
+import javax.inject.Inject
 
 class ConversationInfoActivity : QkThemedActivity() {
+
+    @Inject lateinit var navigator: Navigator
+    @Inject lateinit var conversationRepo: ConversationRepository
 
     private lateinit var binding: ContainerActivityBinding
     private lateinit var router: Router
@@ -42,6 +51,33 @@ class ConversationInfoActivity : QkThemedActivity() {
             val threadId = intent.extras?.getLong("threadId") ?: 0L
             router.setRoot(RouterTransaction.with(ConversationInfoController(threadId)))
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.conversation_info, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val threadId = intent.extras?.getLong("threadId") ?: 0L
+        val isGroup = (conversationRepo.getConversation(threadId)?.recipients?.size ?: 0) > 1
+        menu?.findItem(R.id.call)?.isVisible = !isGroup
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun getColoredMenuItems(): List<Int> {
+        return super.getColoredMenuItems() + R.id.call
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.call) {
+            val threadId = intent.extras?.getLong("threadId") ?: 0L
+            conversationRepo.getConversation(threadId)
+                ?.recipients?.firstOrNull()?.address
+                ?.let { navigator.makePhoneCall(it) }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onBackPressed() {
