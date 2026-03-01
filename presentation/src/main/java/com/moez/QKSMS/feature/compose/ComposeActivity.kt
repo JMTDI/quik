@@ -37,8 +37,8 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.text.format.DateFormat
 import android.view.ContextMenu
-import android.view.KeyEvent
 import android.view.DragEvent.ACTION_DRAG_ENDED
+import android.view.KeyEvent
 import android.view.DragEvent.ACTION_DRAG_EXITED
 import android.view.DragEvent.ACTION_DROP
 import android.view.Menu
@@ -730,11 +730,18 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_SOFT_LEFT) {
-            openOptionsMenu()
-            return true
+        when (keyCode) {
+            KeyEvent.KEYCODE_MENU,
+            KeyEvent.KEYCODE_SOFT_LEFT -> {
+                openOptionsMenu()
+                return true
+            }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun getColoredMenuItems(): List<Int> {
+        return super.getColoredMenuItems()
     }
 
     override fun onCreateContextMenu(
