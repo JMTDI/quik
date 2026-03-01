@@ -190,7 +190,7 @@
         android:layout_marginBottom="12dp"
         android:background="@drawable/rounded_rectangle_22dp"
         android:backgroundTint="?attr/bubbleColor"
-        app:layout_constraintBottom_toTopOf="@+id/menuHintBar"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/send"
         app:layout_constraintStart_toEndOf="@id/attach"
         app:layout_constraintTop_toTopOf="@id/scheduledCancel" />
@@ -732,7 +732,7 @@
         android:paddingBottom="12dp"
         android:text="@string/compose_no_valid_recipients"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/menuHintBar"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
@@ -763,7 +763,7 @@
         android:elevation="16dp"
         android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/menuHintBar"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="invisible">
@@ -906,21 +906,5 @@
         </LinearLayout>
 
     </LinearLayout>
-
-    <!-- D-pad/flip-phone: hint bar at the bottom showing Menu key opens the options menu -->
-    <TextView
-        android:id="@+id/menuHintBar"
-        android:layout_width="0dp"
-        android:layout_height="28dp"
-        android:gravity="center"
-        android:text="☰  Menu key  ·  Options"
-        android:textSize="11sp"
-        android:textColor="?android:attr/textColorSecondary"
-        android:background="?android:attr/colorButtonNormal"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

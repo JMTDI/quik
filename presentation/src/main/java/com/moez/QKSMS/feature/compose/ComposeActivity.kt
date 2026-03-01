@@ -37,6 +37,7 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.text.format.DateFormat
 import android.view.ContextMenu
+import android.view.KeyEvent
 import android.view.DragEvent.ACTION_DRAG_ENDED
 import android.view.DragEvent.ACTION_DRAG_EXITED
 import android.view.DragEvent.ACTION_DROP
@@ -411,20 +412,9 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
             else -> state.conversationtitle
         }
 
-        if (state.query.isNotEmpty()) {
-            binding.toolbarSubtitle.setVisible(true)
-            binding.toolbarSubtitle.text = getString(R.string.compose_subtitle_results,
-                state.searchSelectionPosition, state.searchResults)
-        } else if (!state.editingMode && state.selectedMessages == 0) {
-            // D-pad/flip-phone: show phone number(s) as subtitle in toolbar
-            val phones = state.messages?.first?.recipients
-                ?.joinToString(", ") { it.address }
-                ?: ""
-            binding.toolbarSubtitle.setVisible(phones.isNotBlank())
-            if (phones.isNotBlank()) binding.toolbarSubtitle.text = phones
-        } else {
-            binding.toolbarSubtitle.setVisible(false)
-        }
+        binding.toolbarSubtitle.setVisible(state.query.isNotEmpty())
+        binding.toolbarSubtitle.text = getString(R.string.compose_subtitle_results, state.searchSelectionPosition,
+            state.searchResults)
 
         binding.toolbarTitle.setVisible(!state.editingMode)
         binding.chips.setVisible(state.editingMode)
@@ -739,18 +729,12 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         return true
     }
 
-    // D-pad/flip-phone: let Menu key or Soft-Left key open the options menu
-    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
-        if (keyCode == android.view.KeyEvent.KEYCODE_MENU ||
-            keyCode == android.view.KeyEvent.KEYCODE_SOFT_LEFT) {
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_SOFT_LEFT) {
             openOptionsMenu()
             return true
         }
         return super.onKeyDown(keyCode, event)
-    }
-
-    override fun getColoredMenuItems(): List<Int> {
-        return super.getColoredMenuItems() + R.id.call
     }
 
     override fun onCreateContextMenu(
