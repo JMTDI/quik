@@ -29,13 +29,11 @@ import dev.octoshrimpy.quik.R
 import dev.octoshrimpy.quik.common.Navigator
 import dev.octoshrimpy.quik.common.base.QkThemedActivity
 import dev.octoshrimpy.quik.databinding.ContainerActivityBinding
-import dev.octoshrimpy.quik.repository.ConversationRepository
 import javax.inject.Inject
 
 class ConversationInfoActivity : QkThemedActivity() {
 
     @Inject lateinit var navigator: Navigator
-    @Inject lateinit var conversationRepo: ConversationRepository
 
     private lateinit var binding: ContainerActivityBinding
     private lateinit var router: Router
