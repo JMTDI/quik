@@ -411,9 +411,20 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
             else -> state.conversationtitle
         }
 
-        binding.toolbarSubtitle.setVisible(state.query.isNotEmpty())
-        binding.toolbarSubtitle.text = getString(R.string.compose_subtitle_results, state.searchSelectionPosition,
-            state.searchResults)
+        if (state.query.isNotEmpty()) {
+            binding.toolbarSubtitle.setVisible(true)
+            binding.toolbarSubtitle.text = getString(R.string.compose_subtitle_results,
+                state.searchSelectionPosition, state.searchResults)
+        } else if (!state.editingMode && state.selectedMessages == 0) {
+            // D-pad/flip-phone: show phone number(s) as subtitle in toolbar
+            val phones = state.messages?.first?.recipients
+                ?.joinToString(", ") { it.address }
+                ?: ""
+            binding.toolbarSubtitle.setVisible(phones.isNotBlank())
+            if (phones.isNotBlank()) binding.toolbarSubtitle.text = phones
+        } else {
+            binding.toolbarSubtitle.setVisible(false)
+        }
 
         binding.toolbarTitle.setVisible(!state.editingMode)
         binding.chips.setVisible(state.editingMode)
@@ -726,6 +737,16 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         optionsItemIntent.onNext(item.itemId)
         return true
+    }
+
+    // D-pad/flip-phone: let Menu key or Soft-Left key open the options menu
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        if (keyCode == android.view.KeyEvent.KEYCODE_MENU ||
+            keyCode == android.view.KeyEvent.KEYCODE_SOFT_LEFT) {
+            openOptionsMenu()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun getColoredMenuItems(): List<Int> {

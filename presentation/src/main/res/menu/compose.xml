@@ -32,7 +32,7 @@
         android:icon="@drawable/ic_call_white_24dp"
         android:title="@string/menu_call"
         android:visible="false"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/viewScheduledMessages"
