@@ -1,5 +1,14 @@
 [
   {
+    "versionCode": 2237,
+    "versionName": "4.3.5",
+    "fixed": [
+      "## What's Changed",
+      "* Add D-pad navigation support and remove voice-to-text UI by @Copilot in https://github.com/JMTDI/quik/pull/4",
+      "* Release v4.3.5 (2237) by @github-actions[bot] in https://github.com/JMTDI/quik/pull/5"
+    ]
+  },
+  {
     "versionCode": 2236,
     "versionName": "4.3.4",
     "fixed": [
