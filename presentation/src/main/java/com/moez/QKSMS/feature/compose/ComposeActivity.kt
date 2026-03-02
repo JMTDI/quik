@@ -523,20 +523,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         // if scheduling mode is set, show schedule dialog
         if (state.scheduling)
             scheduleAction.onNext(true)
-
-        // if stt is available and preference is set to show stt button
-        if (isSpeechRecognitionAvailable() && prefs.showStt.get()) {
-            binding.speechToTextFrame.isVisible = true
-
-            val xPercent = prefs.showSttOffsetX.get()
-            val yPercent = prefs.showSttOffsetY.get()
-
-            // if the stt icon has a custom position, move it
-            if ((xPercent != Float.MAX_VALUE) && (yPercent != Float.MAX_VALUE)) {
-                binding.speechToTextFrame.x = (binding.contentView.x + (xPercent * binding.contentView.width))
-                binding.speechToTextFrame.y = (binding.contentView.y + (yPercent * binding.contentView.height))
-            }
-        }
     }
 
     override fun clearSelection() = messageAdapter.clearSelection()
