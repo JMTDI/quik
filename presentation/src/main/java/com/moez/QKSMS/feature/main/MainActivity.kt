@@ -498,23 +498,24 @@ class MainActivity : QkThemedActivity(), MainView {
         return true
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_SOFT_LEFT -> return toggleDrawer()
-            KeyEvent.KEYCODE_BACK -> {
-                // If the drawer is open, close it first instead of leaving the activity
-                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                    return true
-                }
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val code = event.keyCode
+        // KEYCODE_MENU fires on ACTION_UP; suppress the DOWN silently so nothing else reacts
+        if (code == KeyEvent.KEYCODE_MENU) {
+            if (event.action == KeyEvent.ACTION_UP) toggleDrawer()
+            return true
+        }
+        if (code == KeyEvent.KEYCODE_SOFT_LEFT && event.action == KeyEvent.ACTION_DOWN) {
+            return toggleDrawer()
+        }
+        // Close drawer on Back before letting the activity handle it
+        if (code == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
+            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+                return true
             }
         }
-        return super.onKeyDown(keyCode, event)
-    }
-
-    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_MENU) return toggleDrawer()
-        return super.onKeyUp(keyCode, event)
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onBackPressed() = backPressedSubject.onNext(NavItem.BACK)

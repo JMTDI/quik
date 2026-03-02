@@ -727,22 +727,18 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         return true
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_SOFT_LEFT -> {
-                optionsItemIntent.onNext(R.id.info)
-                return true
-            }
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val code = event.keyCode
+        // KEYCODE_MENU fires on ACTION_UP; suppress the DOWN silently
+        if (code == KeyEvent.KEYCODE_MENU) {
+            if (event.action == KeyEvent.ACTION_UP) optionsItemIntent.onNext(R.id.info)
+            return true
         }
-        return super.onKeyDown(keyCode, event)
-    }
-
-    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_MENU) {
+        if (code == KeyEvent.KEYCODE_SOFT_LEFT && event.action == KeyEvent.ACTION_DOWN) {
             optionsItemIntent.onNext(R.id.info)
             return true
         }
-        return super.onKeyUp(keyCode, event)
+        return super.dispatchKeyEvent(event)
     }
 
     override fun getColoredMenuItems(): List<Int> {
