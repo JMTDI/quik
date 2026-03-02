@@ -489,17 +489,18 @@ class MainActivity : QkThemedActivity(), MainView {
      * All other keys fall through to QkActivity's base handler which converts
      * DPAD_CENTER / ENTER into performClick() on the focused view.
      */
+    private fun toggleDrawer(): Boolean {
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+        return true
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
-            KeyEvent.KEYCODE_MENU -> {
-                // Toggle the drawer open/closed with the hardware Menu key
-                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                } else {
-                    binding.drawerLayout.openDrawer(GravityCompat.START)
-                }
-                return true
-            }
+            KeyEvent.KEYCODE_SOFT_LEFT -> return toggleDrawer()
             KeyEvent.KEYCODE_BACK -> {
                 // If the drawer is open, close it first instead of leaving the activity
                 if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -509,6 +510,11 @@ class MainActivity : QkThemedActivity(), MainView {
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_MENU) return toggleDrawer()
+        return super.onKeyUp(keyCode, event)
     }
 
     override fun onBackPressed() = backPressedSubject.onNext(NavItem.BACK)
