@@ -25,7 +25,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-Its very good for using with D-Pad, but everything is too big, scrolling in a messaging conversation is messed up too, especially if there are pictures        applicationId 'com.jmtditech.quik'
+        applicationId 'com.jmtditech.quik'
         minSdkVersion 23
         targetSdkVersion 33
         versionCode 2237
