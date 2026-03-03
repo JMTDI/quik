@@ -111,7 +111,7 @@ class Preferences @Inject constructor(
     val showStt = rxPrefs.getBoolean("showStt", true)
     val showSttOffsetX = rxPrefs.getFloat("showSttOffsetX", Float.MIN_VALUE)
     val showSttOffsetY = rxPrefs.getFloat("showSttOffsetY", Float.MIN_VALUE)
-    val textSize = rxPrefs.getInteger("textSize", TEXT_SIZE_NORMAL)
+    val textSize = rxPrefs.getInteger("textSize", TEXT_SIZE_SMALL)
     val blockingManager = rxPrefs.getInteger("blockingManager", BLOCKING_MANAGER_QKSMS)
     val drop = rxPrefs.getBoolean("drop", false)
     val silentNotContact = rxPrefs.getBoolean("silentNotContact", false)
