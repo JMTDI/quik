@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       upstream_ref:
-        description: Upstream branch or tag to patch (blank = master)
+        description: Upstream branch or tag to patch (blank = latest release tag)
         required: false
         default: ''
         type: string
@@ -24,7 +24,9 @@ jobs:
         id: ref
         run: |
           REF="${{ inputs.upstream_ref }}"
-          [[ -z "$REF" ]] && REF=master
+          if [[ -z "$REF" ]]; then
+            REF=$(git ls-remote --tags --refs https://github.com/quik-sms/quik.git 'v*' | sed 's#.*refs/tags/##' | sort -V | tail -1)
+          fi
           echo "ref=$REF" >> "$GITHUB_OUTPUT"
           echo "tag=${REF//\//-}-dpad-$(date +%Y%m%d-%H%M)" >> "$GITHUB_OUTPUT"
 
@@ -34,16 +36,42 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: '17', cache: gradle }
 
-      - name: Build debug APK
+      - name: Set up signing
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for var in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!var:-}" ]]; then
+              echo "::error title=Missing secret::ANDROID_${var} is not set."
+              exit 1
+            fi
+          done
+          echo "$KEYSTORE_B64" | base64 -d > upstream/presentation/my-release-key.keystore
+          chmod 600 upstream/presentation/my-release-key.keystore
+          {
+            echo "keystore_password=$KEYSTORE_PASSWORD"
+            echo "key_alias=$KEY_ALIAS"
+            echo "key_password=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+
+      - name: Build signed release APK
         working-directory: upstream
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          APK=$(ls upstream/presentation/build/outputs/apk/debug/*.apk | head -1)
+          APK=$(ls upstream/presentation/build/outputs/apk/release/*.apk | head -1)
           sha256sum "$APK" > checksums.txt
           gh release create "${{ steps.ref.outputs.tag }}" "$APK" checksums.txt \
             --title "QUIK ${{ steps.ref.outputs.ref }} + D-pad" \
             --notes "Upstream quik-sms/quik @ ${{ steps.ref.outputs.ref }} with patches/ applied."
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f upstream/presentation/my-release-key.keystore
