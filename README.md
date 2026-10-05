@@ -17,7 +17,7 @@ cd upstream && ./gradlew assembleDebug
 Set `APP_ID=com.jmtditech.quik` to install side by side with stock QUIK.
 
 ## CI
-`.github/workflows/build.yml` is manual-only (Actions tab → Run workflow). Leave the ref blank for the latest upstream `v*` tag, or enter a branch/tag. It applies the patches, builds, and publishes a `<ref>-dpad-<timestamp>` release.
+`.github/workflows/build.yml` is manual-only (Actions tab → Run workflow). Leave the ref blank for upstream `master`, or enter a branch/tag. It applies the patches, builds, and publishes a `<ref>-dpad-<timestamp>` release.
 If a patch stops applying, the run fails; rebase it (`git am --3way`, fix, `git format-patch`).
 
 ## Notes
