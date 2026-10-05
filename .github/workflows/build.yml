@@ -1,0 +1,51 @@
+name: Patch & Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: Upstream branch or tag to patch (blank = latest release tag)
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      APP_ID: com.jmtditech.quik   # remove to keep upstream's dev.octoshrimpy.quik
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve upstream ref
+        id: ref
+        run: |
+          REF="${{ inputs.upstream_ref }}"
+          if [[ -z "$REF" ]]; then
+            REF=$(git ls-remote --tags --refs https://github.com/quik-sms/quik.git 'v*' | sed 's#.*refs/tags/##' | sort -V | tail -1)
+          fi
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "tag=${REF//\//-}-dpad-$(date +%Y%m%d-%H%M)" >> "$GITHUB_OUTPUT"
+
+      - name: Apply patches
+        run: UPSTREAM_REF="${{ steps.ref.outputs.ref }}" bash apply.sh
+
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17', cache: gradle }
+
+      - name: Build debug APK
+        working-directory: upstream
+        run: ./gradlew assembleDebug
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK=$(ls upstream/presentation/build/outputs/apk/debug/*.apk | head -1)
+          sha256sum "$APK" > checksums.txt
+          gh release create "${{ steps.ref.outputs.tag }}" "$APK" checksums.txt \
+            --title "QUIK ${{ steps.ref.outputs.ref }} + D-pad" \
+            --notes "Upstream quik-sms/quik @ ${{ steps.ref.outputs.ref }} with patches/ applied."

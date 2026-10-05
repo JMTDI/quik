@@ -1,0 +1,1942 @@
+From d4c57131b8048e5d89c5b5c854d6260f61000cf0 Mon Sep 17 00:00:00 2001
+From: JMTDI <noreply@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 20:07:59 +0000
+Subject: [PATCH] Add full D-pad navigation support
+
+---
+ .../com/moez/QKSMS/common/base/QkActivity.kt  | 109 ++++++++++++++++++
+ .../QKSMS/common/widget/PreferenceView.kt     |   6 +
+ .../moez/QKSMS/common/widget/QkEditText.kt    |  48 ++++++++
+ .../common/widget/RadioPreferenceView.kt      |   6 +
+ .../QKSMS/feature/compose/ComposeActivity.kt  |  45 +++-----
+ .../QKSMS/feature/compose/MessagesAdapter.kt  |  22 ++++
+ .../editing/PhoneNumberPickerAdapter.kt       |   6 +
+ .../QKSMS/feature/compose/part/ImageBinder.kt |   4 +-
+ .../ConversationInfoActivity.kt               |  34 ++++++
+ .../ConversationInfoAdapter.kt                |   9 ++
+ .../conversations/ConversationsAdapter.kt     |  13 +++
+ .../moez/QKSMS/feature/main/MainActivity.kt   |  39 +++++++
+ .../src/main/res/drawable/focus_selector.xml  |  27 +++++
+ .../src/main/res/layout/backup_controller.xml |   5 +
+ .../src/main/res/layout/backup_list_item.xml  |   7 +-
+ .../src/main/res/layout/blocked_list_item.xml |   4 +
+ .../layout/blocked_messages_controller.xml    |   2 +
+ .../res/layout/blocked_number_list_item.xml   |  14 ++-
+ .../res/layout/blocked_numbers_controller.xml |   8 ++
+ .../src/main/res/layout/compose_activity.xml  |  94 +++++++++++++++
+ .../main/res/layout/contact_chip_detailed.xml |   4 +
+ .../src/main/res/layout/contact_list_item.xml |   6 +-
+ .../src/main/res/layout/contacts_activity.xml |   4 +
+ .../res/layout/conversation_list_item.xml     |  20 +++-
+ .../layout/conversation_media_list_item.xml   |   6 +-
+ .../conversation_recipient_list_item.xml      |   4 +
+ .../src/main/res/layout/drawer_view.xml       |  38 ++++--
+ .../src/main/res/layout/main_activity.xml     |  19 ++-
+ .../main/res/layout/main_permission_hint.xml  |   6 +
+ .../src/main/res/layout/menu_list_item.xml    |   6 +-
+ .../message_content_filter_list_item.xml      |  14 ++-
+ .../main/res/layout/message_list_item_in.xml  |   4 +
+ .../main/res/layout/message_list_item_out.xml |   6 +-
+ .../layout/mms_image_preview_list_item.xml    |   5 +-
+ .../res/layout/phone_number_list_item.xml     |   4 +-
+ .../src/main/res/layout/qk_dialog.xml         |  16 +++
+ .../src/main/res/layout/qkreply_activity.xml  |   8 ++
+ .../layout/scheduled_message_list_item.xml    |   6 +-
+ .../src/main/res/layout/search_list_item.xml  |   6 +-
+ .../res/layout/swipe_actions_controller.xml   |  14 ++-
+ presentation/src/main/res/layout/tab_view.xml |   4 +
+ .../src/main/res/layout/theme_picker_hsv.xml  |   7 ++
+ presentation/src/main/res/menu/compose.xml    |   2 +-
+ .../src/main/res/menu/conversation_info.xml   |  11 ++
+ presentation/src/main/res/values/styles.xml   |   7 +-
+ 45 files changed, 666 insertions(+), 63 deletions(-)
+ create mode 100644 presentation/src/main/res/drawable/focus_selector.xml
+ create mode 100644 presentation/src/main/res/menu/conversation_info.xml
+
+diff --git a/presentation/src/main/java/com/moez/QKSMS/common/base/QkActivity.kt b/presentation/src/main/java/com/moez/QKSMS/common/base/QkActivity.kt
+index 1328d33c..badeb57d 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/common/base/QkActivity.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/common/base/QkActivity.kt
+@@ -20,9 +20,11 @@ package dev.octoshrimpy.quik.common.base
+ 
+ import android.annotation.SuppressLint
+ import android.os.Bundle
++import android.view.KeyEvent
+ import android.view.Menu
+ import android.view.MenuItem
+ import android.view.View
++import android.view.ViewGroup
+ import android.view.WindowManager
+ import android.widget.TextView
+ import androidx.appcompat.app.AppCompatActivity
+@@ -96,6 +98,113 @@ abstract class QkActivity : AppCompatActivity() {
+         supportActionBar?.setDisplayHomeAsUpEnabled(show)
+     }
+ 
++    /**
++     * D-pad / flip-phone compatibility.
++     *
++     * DPAD_CENTER and ENTER simulate a click on the currently focused view so that every
++     * button, list item, or interactive widget in the activity can be activated with hardware
++     * keys without any touch input.
++     *
++     * Subclasses that need additional key handling (e.g. KEYCODE_MENU to open a drawer) should
++     * call super.onKeyDown() first and only handle keys that return false here.
++     */
++    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
++        when (keyCode) {
++            // D-pad center or Enter: confirm / click the focused view
++            KeyEvent.KEYCODE_DPAD_CENTER,
++            KeyEvent.KEYCODE_ENTER -> {
++                // Request long-press tracking so onKeyLongPress can fire
++                event?.startTracking()
++                currentFocus?.let { focused ->
++                    // Only perform click if the view is a leaf interactive element, not a
++                    // container, so we don't accidentally swallow events meant for an EditText.
++                    if (focused.isClickable) {
++                        focused.performClick()
++                        return true
++                    }
++                }
++            }
++
++            // D-pad down from inside the toolbar (search bar, title, navigation icon, etc.):
++            // jump to the first focusable view below the toolbar so the user can enter the
++            // content area without needing to touch the screen.
++            KeyEvent.KEYCODE_DPAD_DOWN -> {
++                val focused = currentFocus
++                if (focused != null && isDescendantOfToolbar(focused)) {
++                    val tb = toolbar
++                    if (tb != null) {
++                        val below = firstFocusableBelowToolbar(tb)
++                        if (below != null) {
++                            below.requestFocus()
++                            return true
++                        }
++                    }
++                }
++            }
++        }
++        return super.onKeyDown(keyCode, event)
++    }
++
++    /**
++     * D-pad / flip-phone: long-pressing D-pad center or Enter simulates a long-click on the
++     * focused view.  This provides a keyboard equivalent for touch-only long-press actions such
++     * as entering multi-select mode in conversation lists.
++     */
++    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
++        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
++            currentFocus?.let { focused ->
++                if (focused.isLongClickable) {
++                    focused.performLongClick()
++                    return true
++                }
++            }
++        }
++        return super.onKeyLongPress(keyCode, event)
++    }
++
++    /** Returns true if [view] is a descendant of any Toolbar in the view hierarchy. */
++    private fun isDescendantOfToolbar(view: View): Boolean {
++        var v: View? = view
++        while (v != null) {
++            if (v is Toolbar) return true
++            v = v.parent as? View
++        }
++        return false
++    }
++
++    /**
++     * Walks the entire window hierarchy and returns the topmost focusable, visible, enabled
++     * view whose on-screen Y coordinate is at or below the bottom edge of [tb].
++     * Views that are themselves inside a Toolbar are excluded.
++     */
++    private fun firstFocusableBelowToolbar(tb: Toolbar): View? {
++        val loc = IntArray(2)
++        tb.getLocationInWindow(loc)
++        val toolbarBottom = loc[1] + tb.height
++
++        val candidates = mutableListOf<View>()
++        collectFocusableViews(window.decorView, candidates)
++
++        return candidates
++            .filter { v ->
++                v.getLocationInWindow(loc)
++                loc[1] >= toolbarBottom && !isDescendantOfToolbar(v)
++            }
++            .minByOrNull { v ->
++                v.getLocationInWindow(loc)
++                loc[1]
++            }
++    }
++
++    /** Recursively collects all focusable, visible, enabled views under [root]. */
++    private fun collectFocusableViews(root: View, result: MutableList<View>) {
++        if (root.visibility != View.VISIBLE) return
++        if (root.isFocusable && root.isEnabled) result.add(root)
++        if (root is ViewGroup) {
++            for (i in 0 until root.childCount) collectFocusableViews(root.getChildAt(i), result)
++        }
++    }
++
+     private fun disableScreenshots(disableScreenshots: Boolean) {
+         if (disableScreenshots) {
+             window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+diff --git a/presentation/src/main/java/com/moez/QKSMS/common/widget/PreferenceView.kt b/presentation/src/main/java/com/moez/QKSMS/common/widget/PreferenceView.kt
+index 9efc9a26..e9aa516a 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/common/widget/PreferenceView.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/common/widget/PreferenceView.kt
+@@ -81,6 +81,12 @@ class PreferenceView @JvmOverloads constructor(
+         orientation = HORIZONTAL
+         gravity = Gravity.CENTER_VERTICAL
+ 
++        // D-pad / flip-phone: make every preference row reachable by arrow keys.
++        // The focus_selector foreground draws a visible border when the row is focused.
++        isFocusable = true
++        isFocusableInTouchMode = false  // do not steal focus during normal touch scrolling
++        foreground = context.getDrawable(R.drawable.focus_selector)
++
+         layout.icon.imageTintList = context.resolveThemeColorStateList(android.R.attr.textColorSecondary)
+ 
+         context.obtainStyledAttributes(attrs, R.styleable.PreferenceView).run {
+diff --git a/presentation/src/main/java/com/moez/QKSMS/common/widget/QkEditText.kt b/presentation/src/main/java/com/moez/QKSMS/common/widget/QkEditText.kt
+index a8bf7628..42414cd2 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/common/widget/QkEditText.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/common/widget/QkEditText.kt
+@@ -22,6 +22,8 @@ import android.content.Context
+ import android.os.Build
+ import android.util.AttributeSet
+ import android.view.KeyEvent
++import android.view.View
++import android.view.ViewGroup
+ import android.view.inputmethod.EditorInfo
+ import android.view.inputmethod.InputConnection
+ import android.view.inputmethod.InputConnectionWrapper
+@@ -62,6 +64,52 @@ class QkEditText @JvmOverloads constructor(context: Context, attrs: AttributeSet
+         }
+     }
+ 
++    /**
++     * D-pad / flip-phone: intercept DPAD_DOWN and DPAD_UP on single-line fields BEFORE
++     * Android's ArrowKeyMovementMethod or the IME can swallow them.
++     *
++     * We override dispatchKeyEvent (not onKeyDown) because EditText's movement method
++     * and the soft-keyboard can both return true from onKeyDown before our override runs,
++     * which silently swallows the navigation event.  dispatchKeyEvent is called first in
++     * the View event chain, so we can reliably redirect focus here.
++     *
++     * For multi-line compose fields the default cursor-movement behaviour is preserved.
++     */
++    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
++        if (maxLines == 1 && event.action == KeyEvent.ACTION_DOWN) {
++            val direction = when (event.keyCode) {
++                KeyEvent.KEYCODE_DPAD_DOWN -> View.FOCUS_DOWN
++                KeyEvent.KEYCODE_DPAD_UP   -> View.FOCUS_UP
++                else                       -> -1
++            }
++            if (direction != -1) {
++                val next = focusSearch(direction)
++                if (next != null && next !== this) {
++                    // requestFocus() on a RecyclerView or other container may return false
++                    // if it has no currently-focused child.  Try to focus its first focusable
++                    // descendant before giving up.
++                    if (next.requestFocus()) return true
++                    if (focusFirstDescendant(next)) return true
++                }
++            }
++        }
++        return super.dispatchKeyEvent(event)
++    }
++
++    /** Recursively finds and focuses the first enabled, focusable descendant of [root]. */
++    private fun focusFirstDescendant(root: View): Boolean {
++        if (root is ViewGroup) {
++            for (i in 0 until root.childCount) {
++                val child = root.getChildAt(i)
++                if (child.visibility == View.VISIBLE && child.isFocusable && child.isEnabled) {
++                    if (child.requestFocus()) return true
++                }
++                if (focusFirstDescendant(child)) return true
++            }
++        }
++        return false
++    }
++
+     override fun onCreateInputConnection(editorInfo: EditorInfo): InputConnection {
+ 
+         val inputConnection = object : InputConnectionWrapper(super.onCreateInputConnection(editorInfo), true) {
+diff --git a/presentation/src/main/java/com/moez/QKSMS/common/widget/RadioPreferenceView.kt b/presentation/src/main/java/com/moez/QKSMS/common/widget/RadioPreferenceView.kt
+index 6ae133f6..707e7b12 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/common/widget/RadioPreferenceView.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/common/widget/RadioPreferenceView.kt
+@@ -81,6 +81,12 @@ class RadioPreferenceView @JvmOverloads constructor(
+         layout = RadioPreferenceViewBinding.inflate(LayoutInflater.from(context), this)
+         setBackgroundResource(context.resolveThemeAttribute(R.attr.selectableItemBackground))
+ 
++        // D-pad / flip-phone: RadioPreferenceView rows (used in dialogs for phone number
++        // selection) must be reachable by arrow keys.
++        isFocusable = true
++        isFocusableInTouchMode = false
++        foreground = context.getDrawable(R.drawable.focus_selector)
++
+         val states = arrayOf(
+                 intArrayOf(android.R.attr.state_checked),
+                 intArrayOf(-android.R.attr.state_checked))
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/compose/ComposeActivity.kt b/presentation/src/main/java/com/moez/QKSMS/feature/compose/ComposeActivity.kt
+index 8c2eebe2..16aff784 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/compose/ComposeActivity.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/compose/ComposeActivity.kt
+@@ -37,6 +37,7 @@ import android.speech.SpeechRecognizer
+ import android.text.format.DateFormat
+ import android.view.ContextMenu
+ import android.view.DragEvent.ACTION_DRAG_ENDED
++import android.view.KeyEvent
+ import android.view.DragEvent.ACTION_DRAG_EXITED
+ import android.view.DragEvent.ACTION_DROP
+ import android.view.Menu
+@@ -409,16 +410,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
+     override fun onStart() {
+         super.onStart()
+         activityVisibleIntent.onNext(true)
+-
+-        // if first time stt icon is shown (since setting reset), pop up an instruction toast
+-        if (prefs.showStt.get() &&
+-            (prefs.showSttOffsetX.get() == Float.MIN_VALUE) &&
+-            (prefs.showSttOffsetX.get() == Float.MIN_VALUE)) {
+-            makeToast(R.string.compose_toast_drag_stt, Toast.LENGTH_LONG)
+-            // reset to new flag value that indicates 'not first time through, but not customised'
+-            prefs.showSttOffsetX.set(Float.MAX_VALUE)
+-            prefs.showSttOffsetY.set(Float.MAX_VALUE)
+-        }
+     }
+ 
+     override fun onPause() {
+@@ -465,8 +456,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
+                 && state.query.isEmpty() && state.hasScheduledMessages
+         binding.toolbar.menu.findItem(R.id.select_all)?.isVisible = !state.editingMode && (messageAdapter.itemCount > 1) && state.selectedMessages != 0
+         binding.toolbar.menu.findItem(R.id.add)?.isVisible = state.editingMode
+-        binding.toolbar.menu.findItem(R.id.call)?.isVisible = !state.editingMode && state.selectedMessages == 0
+-                && state.query.isEmpty()
+         binding.toolbar.menu.findItem(R.id.info)?.isVisible = !state.editingMode && state.selectedMessages == 0
+                 && state.query.isEmpty()
+         binding.toolbar.menu.findItem(R.id.copy)?.isVisible =
+@@ -523,6 +512,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
+ 
+         // show or hide audio message recording panel and shade background
+         binding.audioMsgBackground.isVisible = state.audioMsgRecording
++        // D-pad: move focus to the record button when the audio overlay becomes visible
++        if (state.audioMsgRecording) binding.audioMsgRecord.requestFocus()
+ 
+         binding.counter.text = state.remaining
+         binding.counter.setVisible(binding.counter.text.isNotBlank())
+@@ -561,20 +552,6 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
+         // if scheduling mode is set, show schedule dialog
+         if (state.scheduling)
+             scheduleAction.onNext(true)
+-
+-        // if stt is available and preference is set to show stt button
+-        if (isSpeechRecognitionAvailable() && prefs.showStt.get()) {
+-            binding.speechToTextFrame.isVisible = true
+-
+-            val xPercent = prefs.showSttOffsetX.get()
+-            val yPercent = prefs.showSttOffsetY.get()
+-
+-            // if the stt icon has a custom position, move it
+-            if ((xPercent != Float.MAX_VALUE) && (yPercent != Float.MAX_VALUE)) {
+-                binding.speechToTextFrame.x = (binding.contentView.x + (xPercent * binding.contentView.width))
+-                binding.speechToTextFrame.y = (binding.contentView.y + (yPercent * binding.contentView.height))
+-            }
+-        }
+     }
+ 
+     override fun clearSelection() = messageAdapter.clearSelection()
+@@ -770,8 +747,22 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
+         return true
+     }
+ 
++    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
++        val code = event.keyCode
++        // KEYCODE_MENU fires on ACTION_UP; suppress the DOWN silently
++        if (code == KeyEvent.KEYCODE_MENU) {
++            if (event.action == KeyEvent.ACTION_UP) optionsItemIntent.onNext(R.id.info)
++            return true
++        }
++        if (code == KeyEvent.KEYCODE_SOFT_LEFT && event.action == KeyEvent.ACTION_DOWN) {
++            optionsItemIntent.onNext(R.id.info)
++            return true
++        }
++        return super.dispatchKeyEvent(event)
++    }
++
+     override fun getColoredMenuItems(): List<Int> {
+-        return super.getColoredMenuItems() + R.id.call
++        return super.getColoredMenuItems()
+     }
+ 
+     override fun onCreateContextMenu(
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/compose/MessagesAdapter.kt b/presentation/src/main/java/com/moez/QKSMS/feature/compose/MessagesAdapter.kt
+index 63b8ba98..e7c7d908 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/compose/MessagesAdapter.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/compose/MessagesAdapter.kt
+@@ -20,6 +20,7 @@ package dev.octoshrimpy.quik.feature.compose
+ 
+ import android.animation.ObjectAnimator
+ import android.content.Context
++import android.graphics.Rect
+ import android.graphics.Typeface
+ import android.net.Uri
+ import android.os.Build
+@@ -54,8 +55,10 @@ import dev.octoshrimpy.quik.common.util.extensions.setTint
+ import dev.octoshrimpy.quik.common.util.extensions.setVisible
+ import dev.octoshrimpy.quik.common.util.extensions.withAlpha
+ import dev.octoshrimpy.quik.compat.SubscriptionManagerCompat
++import dev.octoshrimpy.quik.extensions.isImage
+ import dev.octoshrimpy.quik.extensions.isSmil
+ import dev.octoshrimpy.quik.extensions.isText
++import dev.octoshrimpy.quik.extensions.isVideo
+ import dev.octoshrimpy.quik.extensions.joinTo
+ import dev.octoshrimpy.quik.extensions.millisecondsToMinutes
+ import dev.octoshrimpy.quik.extensions.truncateWithEllipses
+@@ -169,6 +172,14 @@ class MessagesAdapter @Inject constructor(
+         partContextMenuRegistrar.onNext(parts)
+ 
+         return QkViewHolder(view).apply {
++            // D-pad: message items must be focusable and scroll into view on arrow-key nav.
++            view.isFocusable = true
++            view.isFocusableInTouchMode = false
++            view.setOnFocusChangeListener { v, hasFocus ->
++                if (hasFocus) {
++                    v.requestRectangleOnScreen(Rect(0, 0, v.width, v.height), false)
++                }
++            }
+             view.setOnClickListener {
+                 getItem(adapterPosition)?.let {
+                     when (toggleSelection(it.id, false)) {
+@@ -424,6 +435,16 @@ class MessagesAdapter @Inject constructor(
+             clicks.subscribe(partClicks)    // part clicks gets passed back to compose view model
+         }
+ 
++        // D-pad: if this message has image/video parts, override the item click so that
++        // pressing D-pad center (which calls performClick on the focused message row) opens
++        // the first image directly — the inner parts RecyclerView is not reachable by D-pad.
++        val imageParts = message.parts.filter { !it.isSmil() && !it.isText() && (it.isImage() || it.isVideo()) }
++        if (imageParts.isNotEmpty()) {
++            holder.itemView.setOnClickListener {
++                partClicks.onNext(imageParts.first().id)
++            }
++        }
++
+         showEmojiReactions(reactions, reactionText, message)
+     }
+ 
+@@ -533,3 +554,4 @@ class MessagesAdapter @Inject constructor(
+ 
+     }
+ }
++
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/compose/editing/PhoneNumberPickerAdapter.kt b/presentation/src/main/java/com/moez/QKSMS/feature/compose/editing/PhoneNumberPickerAdapter.kt
+index a689b5d6..bc3e65e8 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/compose/editing/PhoneNumberPickerAdapter.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/compose/editing/PhoneNumberPickerAdapter.kt
+@@ -50,6 +50,12 @@ class PhoneNumberPickerAdapter @Inject constructor(
+         val inflater = LayoutInflater.from(parent.context)
+         val binding = PhoneNumberListItemBinding.inflate(inflater, parent, false)
+         return QkBindingViewHolder(binding).apply {
++            // D-pad: root FrameLayout holds the click handler; disable inner RadioPreferenceView
++            // focusability so the root (which is clickable) receives D-pad focus and clicks.
++            binding.number.isFocusable = false
++            binding.root.isFocusable = true
++            binding.root.isFocusableInTouchMode = false
++
+             binding.number.radioButton.forwardTouches(itemView)
+ 
+             binding.root.setOnClickListener {
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/compose/part/ImageBinder.kt b/presentation/src/main/java/com/moez/QKSMS/feature/compose/part/ImageBinder.kt
+index ab5eb828..9c9e3278 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/compose/part/ImageBinder.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/compose/part/ImageBinder.kt
+@@ -25,6 +25,7 @@ import dev.octoshrimpy.quik.common.util.Colors
+ import dev.octoshrimpy.quik.common.util.extensions.setVisible
+ import dev.octoshrimpy.quik.common.widget.BubbleImageView
+ import dev.octoshrimpy.quik.databinding.MmsImagePreviewListItemBinding
++import dev.octoshrimpy.quik.common.util.extensions.dpToPx
+ import dev.octoshrimpy.quik.extensions.isImage
+ import dev.octoshrimpy.quik.extensions.isVideo
+ import dev.octoshrimpy.quik.model.Message
+@@ -59,7 +60,8 @@ class ImageBinder @Inject constructor(colors: Colors, private val context: Conte
+         }
+ 
+         tryOrNull(true) {
+-            GlideApp.with(context).load(part.getUri()).fitCenter().into(binding.thumbnail)
++            val sizePx = 40.dpToPx(context)
++            GlideApp.with(context).load(part.getUri()).centerCrop().override(sizePx, sizePx).into(binding.thumbnail)
+         }
+     }
+ 
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoActivity.kt b/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoActivity.kt
+index 8970e304..e0ffd88d 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoActivity.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoActivity.kt
+@@ -19,15 +19,22 @@
+ package dev.octoshrimpy.quik.feature.conversationinfo
+ 
+ import android.os.Bundle
++import android.view.Menu
++import android.view.MenuItem
+ import com.bluelinelabs.conductor.Conductor
+ import com.bluelinelabs.conductor.Router
+ import com.bluelinelabs.conductor.RouterTransaction
+ import dagger.android.AndroidInjection
++import dev.octoshrimpy.quik.R
++import dev.octoshrimpy.quik.common.Navigator
+ import dev.octoshrimpy.quik.common.base.QkThemedActivity
+ import dev.octoshrimpy.quik.databinding.ContainerActivityBinding
++import javax.inject.Inject
+ 
+ class ConversationInfoActivity : QkThemedActivity() {
+ 
++    @Inject lateinit var navigator: Navigator
++
+     private lateinit var binding: ContainerActivityBinding
+     private lateinit var router: Router
+ 
+@@ -44,6 +51,33 @@ class ConversationInfoActivity : QkThemedActivity() {
+         }
+     }
+ 
++    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
++        menuInflater.inflate(R.menu.conversation_info, menu)
++        return super.onCreateOptionsMenu(menu)
++    }
++
++    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
++        val threadId = intent.extras?.getLong("threadId") ?: 0L
++        val isGroup = (conversationRepo.getConversation(threadId)?.recipients?.size ?: 0) > 1
++        menu?.findItem(R.id.call)?.isVisible = !isGroup
++        return super.onPrepareOptionsMenu(menu)
++    }
++
++    override fun getColoredMenuItems(): List<Int> {
++        return super.getColoredMenuItems() + R.id.call
++    }
++
++    override fun onOptionsItemSelected(item: MenuItem): Boolean {
++        if (item.itemId == R.id.call) {
++            val threadId = intent.extras?.getLong("threadId") ?: 0L
++            conversationRepo.getConversation(threadId)
++                ?.recipients?.firstOrNull()?.address
++                ?.let { navigator.makePhoneCall(it) }
++            return true
++        }
++        return super.onOptionsItemSelected(item)
++    }
++
+     override fun onBackPressed() {
+         if (!router.handleBack()) {
+             super.onBackPressed()
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoAdapter.kt b/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoAdapter.kt
+index 332f7541..b7e083d4 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoAdapter.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoAdapter.kt
+@@ -1,6 +1,7 @@
+ package dev.octoshrimpy.quik.feature.conversationinfo
+ 
+ import android.content.Context
++import android.graphics.Rect
+ import android.view.LayoutInflater
+ import android.view.ViewGroup
+ import androidx.core.view.isVisible
+@@ -43,6 +44,14 @@ class ConversationInfoAdapter @Inject constructor(
+             0 -> {
+                 val binding = ConversationRecipientListItemBinding.inflate(inflater, parent, false)
+                 QkViewHolder(binding.root).apply {
++                    // D-pad: recipient items must be focusable and scroll into view.
++                    itemView.isFocusable = true
++                    itemView.isFocusableInTouchMode = false
++                    itemView.setOnFocusChangeListener { v, hasFocus ->
++                        if (hasFocus) {
++                            v.requestRectangleOnScreen(Rect(0, 0, v.width, v.height), false)
++                        }
++                    }
+                     itemView.setOnClickListener {
+                         val item = getItem(adapterPosition) as? ConversationInfoRecipient
+                         item?.value?.id?.run(recipientClicks::onNext)
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/conversations/ConversationsAdapter.kt b/presentation/src/main/java/com/moez/QKSMS/feature/conversations/ConversationsAdapter.kt
+index 5fe29883..a03f7ea4 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/conversations/ConversationsAdapter.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/conversations/ConversationsAdapter.kt
+@@ -19,6 +19,7 @@
+ package dev.octoshrimpy.quik.feature.conversations
+ 
+ import android.content.Context
++import android.graphics.Rect
+ import android.graphics.Typeface
+ import android.view.LayoutInflater
+ import android.view.ViewGroup
+@@ -80,6 +81,18 @@ class ConversationsAdapter @Inject constructor(
+         }
+ 
+         return QkBindingViewHolder(binding).apply {
++            // D-pad / flip-phone: make the row focusable so arrow keys can reach it.
++            // The foreground focus_selector draws a visible border while focused.
++            binding.root.isFocusable = true
++            binding.root.isFocusableInTouchMode = false  // touch mode keeps normal ripple behaviour
++
++            // D-pad: when this item gains focus, ask the RecyclerView to scroll it fully into view
++            binding.root.setOnFocusChangeListener { view, hasFocus ->
++                if (hasFocus) {
++                    view.requestRectangleOnScreen(Rect(0, 0, view.width, view.height), false)
++                }
++            }
++
+             binding.root.setOnClickListener {
+                 val conversation = getItem(adapterPosition) ?: return@setOnClickListener
+                 when (toggleSelection(conversation.id, false)) {
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/main/MainActivity.kt b/presentation/src/main/java/com/moez/QKSMS/feature/main/MainActivity.kt
+index 4a0af4e7..9a437141 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/main/MainActivity.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/main/MainActivity.kt
+@@ -25,6 +25,7 @@ import android.content.res.ColorStateList
+ import android.os.Build
+ import android.os.Bundle
+ import android.view.Gravity
++import android.view.KeyEvent
+ import android.view.Menu
+ import android.view.MenuItem
+ import android.view.View
+@@ -472,6 +473,44 @@ class MainActivity : QkThemedActivity(), MainView {
+     override fun onOptionsItemSelected(item: MenuItem) =
+         optionsItemIntent.onNext(item.itemId).let { true }
+ 
++    /**
++     * D-pad / flip-phone: KEYCODE_MENU opens or closes the navigation drawer, providing a
++     * hardware-key alternative to swiping the drawer open.  KEYCODE_BACK closes the drawer
++     * before triggering the normal back-stack pop so users on flip phones can dismiss it
++     * without accidentally leaving the activity.
++     *
++     * All other keys fall through to QkActivity's base handler which converts
++     * DPAD_CENTER / ENTER into performClick() on the focused view.
++     */
++    private fun toggleDrawer(): Boolean {
++        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
++            binding.drawerLayout.closeDrawer(GravityCompat.START)
++        } else {
++            binding.drawerLayout.openDrawer(GravityCompat.START)
++        }
++        return true
++    }
++
++    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
++        val code = event.keyCode
++        // KEYCODE_MENU fires on ACTION_UP; suppress the DOWN silently so nothing else reacts
++        if (code == KeyEvent.KEYCODE_MENU) {
++            if (event.action == KeyEvent.ACTION_UP) toggleDrawer()
++            return true
++        }
++        if (code == KeyEvent.KEYCODE_SOFT_LEFT && event.action == KeyEvent.ACTION_DOWN) {
++            return toggleDrawer()
++        }
++        // Close drawer on Back before letting the activity handle it
++        if (code == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
++            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
++                binding.drawerLayout.closeDrawer(GravityCompat.START)
++                return true
++            }
++        }
++        return super.dispatchKeyEvent(event)
++    }
++
+     override fun onBackPressed() = backPressedSubject.onNext(NavItem.BACK)
+ 
+     override fun drawerToggled(opened: Boolean) {
+diff --git a/presentation/src/main/res/drawable/focus_selector.xml b/presentation/src/main/res/drawable/focus_selector.xml
+new file mode 100644
+index 00000000..c9e5660b
+--- /dev/null
++++ b/presentation/src/main/res/drawable/focus_selector.xml
+@@ -0,0 +1,27 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++    D-pad / flip-phone compatibility: focus highlight applied as android:foreground on
++    every focusable interactive view (list items, buttons, dialogs).  Shows a 2 dp
++    accent-coloured border while the view is keyboard-focused; transparent otherwise.
++-->
++<selector xmlns:android="http://schemas.android.com/apk/res/android">
++
++    <!-- Focused state: thin coloured border so the user can see which item is active -->
++    <item android:state_focused="true" android:state_pressed="false">
++        <shape android:shape="rectangle">
++            <stroke
++                android:width="2dp"
++                android:color="?android:attr/colorAccent" />
++            <corners android:radius="4dp" />
++            <solid android:color="@android:color/transparent" />
++        </shape>
++    </item>
++
++    <!-- All other states: fully transparent, no visible foreground -->
++    <item>
++        <shape android:shape="rectangle">
++            <solid android:color="@android:color/transparent" />
++        </shape>
++    </item>
++
++</selector>
+diff --git a/presentation/src/main/res/layout/backup_controller.xml b/presentation/src/main/res/layout/backup_controller.xml
+index 943dbafe..3b2b5f0a 100644
+--- a/presentation/src/main/res/layout/backup_controller.xml
++++ b/presentation/src/main/res/layout/backup_controller.xml
+@@ -81,6 +81,7 @@
+                     app:textSize="secondary"
+                     tools:text="8 minutes remaining" />
+ 
++                <!-- D-pad: cancel button for backup/restore progress must be focusable. -->
+                 <ImageView
+                     android:id="@+id/progressCancel"
+                     android:layout_width="56dp"
+@@ -88,6 +89,10 @@
+                     android:background="?android:attr/selectableItemBackground"
+                     android:padding="16dp"
+                     android:src="@drawable/ic_close_black_24dp"
++                    android:focusable="true"
++                    android:focusableInTouchMode="true"
++                    android:clickable="true"
++                    android:foreground="@drawable/focus_selector"
+                     app:tint="?android:attr/textColorSecondary"
+                     app:layout_constraintBottom_toBottomOf="@id/progressSummary"
+                     app:layout_constraintEnd_toEndOf="parent"
+diff --git a/presentation/src/main/res/layout/backup_list_item.xml b/presentation/src/main/res/layout/backup_list_item.xml
+index 0293d5c0..3cc813ea 100644
+--- a/presentation/src/main/res/layout/backup_list_item.xml
++++ b/presentation/src/main/res/layout/backup_list_item.xml
+@@ -17,6 +17,7 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root is focusable so arrow keys can navigate the backup file list. -->
+ <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+@@ -26,7 +27,11 @@
+     android:paddingStart="24dp"
+     android:paddingTop="8dp"
+     android:paddingEnd="24dp"
+-    android:paddingBottom="8dp">
++    android:paddingBottom="8dp"
++    android:background="?attr/selectableItemBackground"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <dev.octoshrimpy.quik.common.widget.QkTextView
+         android:id="@+id/title"
+diff --git a/presentation/src/main/res/layout/blocked_list_item.xml b/presentation/src/main/res/layout/blocked_list_item.xml
+index 8a27b6e0..0f2b8334 100644
+--- a/presentation/src/main/res/layout/blocked_list_item.xml
++++ b/presentation/src/main/res/layout/blocked_list_item.xml
+@@ -17,6 +17,7 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root is focusable so arrow keys can select blocked conversation items. -->
+ <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+@@ -25,6 +26,9 @@
+     android:background="?attr/selectableItemBackground"
+     android:paddingTop="4dp"
+     android:paddingBottom="4dp"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector"
+     app:layout_constraintVertical_chainStyle="packed">
+ 
+     <dev.octoshrimpy.quik.common.widget.GroupAvatarView
+diff --git a/presentation/src/main/res/layout/blocked_messages_controller.xml b/presentation/src/main/res/layout/blocked_messages_controller.xml
+index e1e7e208..b2ed35fe 100644
+--- a/presentation/src/main/res/layout/blocked_messages_controller.xml
++++ b/presentation/src/main/res/layout/blocked_messages_controller.xml
+@@ -33,12 +33,14 @@
+         android:padding="56dp"
+         android:text="@string/blocked_messages_empty" />
+ 
++    <!-- D-pad: RecyclerView must be focusable so arrow keys can navigate the conversation list. -->
+     <androidx.recyclerview.widget.RecyclerView
+         android:id="@+id/conversations"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:paddingTop="8dp"
+         android:paddingBottom="8dp"
++        android:focusable="true"
+         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+         tools:listitem="@layout/blocked_list_item" />
+ 
+diff --git a/presentation/src/main/res/layout/blocked_number_list_item.xml b/presentation/src/main/res/layout/blocked_number_list_item.xml
+index 5c6b536d..1508a46c 100644
+--- a/presentation/src/main/res/layout/blocked_number_list_item.xml
++++ b/presentation/src/main/res/layout/blocked_number_list_item.xml
+@@ -17,11 +17,16 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root is focusable so arrow keys can navigate the blocked numbers list. -->
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="48dp"
+-    android:orientation="horizontal">
++    android:orientation="horizontal"
++    android:background="?attr/selectableItemBackground"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <dev.octoshrimpy.quik.common.widget.QkTextView
+         android:id="@+id/number"
+@@ -34,6 +39,7 @@
+         tools:text="(123) 456-7890"
+         android:textDirection="ltr" />
+ 
++    <!-- D-pad: unblock (X) button is focusable so the user can tab right into it. -->
+     <ImageView
+         android:id="@+id/unblock"
+         android:layout_width="48dp"
+@@ -43,6 +49,10 @@
+         android:background="?android:attr/selectableItemBackground"
+         android:padding="12dp"
+         android:src="@drawable/ic_close_black_24dp"
+-        android:tint="?android:attr/textColorSecondary" />
++        android:tint="?android:attr/textColorSecondary"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:foreground="@drawable/focus_selector" />
+ 
+ </LinearLayout>
+\ No newline at end of file
+diff --git a/presentation/src/main/res/layout/blocked_numbers_controller.xml b/presentation/src/main/res/layout/blocked_numbers_controller.xml
+index cf4442e5..f9c9e01d 100644
+--- a/presentation/src/main/res/layout/blocked_numbers_controller.xml
++++ b/presentation/src/main/res/layout/blocked_numbers_controller.xml
+@@ -25,6 +25,7 @@
+     android:background="?android:attr/windowBackground"
+     android:orientation="vertical">
+ 
++    <!-- D-pad: RecyclerView must be focusable so arrow keys can enter the list. -->
+     <androidx.recyclerview.widget.RecyclerView
+         android:id="@+id/numbers"
+         android:layout_width="match_parent"
+@@ -32,6 +33,7 @@
+         android:clipToPadding="false"
+         android:paddingTop="8dp"
+         android:paddingBottom="8dp"
++        android:focusable="true"
+         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+ 
+     <dev.octoshrimpy.quik.common.widget.QkTextView
+@@ -42,6 +44,8 @@
+         android:text="@string/blocked_numbers_empty"
+         android:textColor="?android:attr/textColorTertiary" />
+ 
++    <!-- D-pad: add (FAB) button — focusable so it can be reached by pressing right
++         from the list, or directly with DPAD_CENTER to add a new blocked number. -->
+     <ImageView
+         android:id="@+id/add"
+         android:layout_width="56dp"
+@@ -53,6 +57,10 @@
+         android:elevation="8dp"
+         android:padding="16dp"
+         android:src="@drawable/ic_add_black_24dp"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:foreground="@drawable/focus_selector"
+         app:tint="@color/white"
+         tools:backgroundTint="@color/tools_theme" />
+ 
+diff --git a/presentation/src/main/res/layout/compose_activity.xml b/presentation/src/main/res/layout/compose_activity.xml
+index d0841f2f..b7d2b0db 100644
+--- a/presentation/src/main/res/layout/compose_activity.xml
++++ b/presentation/src/main/res/layout/compose_activity.xml
+@@ -68,6 +68,7 @@
+         android:layout_height="0dp"
+         android:layout_marginBottom="12dp"
+         android:paddingTop="8dp"
++        android:nextFocusUp="@+id/toolbarTitle"
+         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+         app:layout_constraintBottom_toTopOf="@id/messageBackground"
+         app:layout_constraintEnd_toEndOf="parent"
+@@ -333,6 +334,8 @@
+         app:textSize="tertiary"
+         tools:text="108 / 2" />
+ 
++    <!-- D-pad: send button is the rightmost compose-bar control.
++         nextFocusLeft moves focus back to the message field. -->
+     <ImageView
+         android:id="@+id/send"
+         android:layout_width="44dp"
+@@ -343,11 +346,18 @@
+         android:padding="10dp"
+         android:src="@drawable/ic_send_black_24dp"
+         android:visibility="invisible"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusLeft="@+id/message"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:tint="?android:textColorSecondary"
+         tools:visibility="visible" />
+ 
++    <!-- D-pad: scheduled-send replaces the normal send button when a schedule is set.
++         Same navigation rules as the regular send button. -->
+     <ImageView
+         android:id="@+id/scheduledSend"
+         android:layout_width="44dp"
+@@ -358,6 +368,11 @@
+         android:src="@drawable/ic_schedule_send_black_24dp"
+         android:padding="10dp"
+         android:visibility="gone"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusLeft="@+id/message"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:tint="?android:textColorSecondary"
+@@ -383,6 +398,10 @@
+                 android:id="@+id/toolbarTitle"
+                 style="@style/ToolbarText"
+                 android:layout_height="wrap_content"
++                android:focusable="true"
++                android:focusableInTouchMode="false"
++                android:foreground="@drawable/focus_selector"
++                android:nextFocusDown="@+id/messageList"
+                 android:textDirection="ltr"
+                 tools:text="Moez Bhatti" />
+ 
+@@ -434,6 +453,7 @@
+         app:layout_constraintTop_toTopOf="parent"
+         tools:visibility="gone" />
+ 
++    <!-- D-pad: attachment overlay — contact picker button. -->
+     <ImageView
+         android:id="@+id/contact"
+         android:layout_width="40dp"
+@@ -446,6 +466,11 @@
+         android:padding="10dp"
+         android:src="@drawable/ic_person_black_24dp"
+         android:visibility="visible"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusDown="@+id/schedule"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toTopOf="@id/schedule"
+         app:layout_constraintEnd_toEndOf="@id/attach"
+         app:layout_constraintStart_toStartOf="@id/attach"
+@@ -468,6 +493,7 @@
+         app:layout_constraintStart_toEndOf="@id/contact"
+         app:layout_constraintTop_toTopOf="@id/contact" />
+ 
++    <!-- D-pad: schedule picker button in the attachment overlay. -->
+     <ImageView
+         android:id="@+id/schedule"
+         android:layout_width="40dp"
+@@ -480,6 +506,12 @@
+         android:padding="10dp"
+         android:src="@drawable/ic_event_black_24dp"
+         android:visibility="visible"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusUp="@+id/contact"
++        android:nextFocusDown="@+id/attachAFileIcon"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toTopOf="@id/attachAFileIcon"
+         app:layout_constraintEnd_toEndOf="@id/attach"
+         app:layout_constraintStart_toStartOf="@id/attach"
+@@ -502,6 +534,7 @@
+         app:layout_constraintStart_toEndOf="@id/schedule"
+         app:layout_constraintTop_toTopOf="@id/schedule" />
+ 
++    <!-- D-pad: file attachment button in the overlay. -->
+     <ImageView
+         android:id="@+id/attachAFileIcon"
+         android:layout_width="40dp"
+@@ -515,6 +548,12 @@
+         android:rotation="-45"
+         android:src="@drawable/ic_attachment_black_24dp"
+         android:visibility="visible"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusUp="@+id/schedule"
++        android:nextFocusDown="@+id/attachAnAudioMessageIcon"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toTopOf="@id/attachAnAudioMessageIcon"
+         app:layout_constraintEnd_toEndOf="@id/attach"
+         app:layout_constraintStart_toStartOf="@id/attach"
+@@ -537,6 +576,7 @@
+         app:layout_constraintStart_toEndOf="@id/attachAFileIcon"
+         app:layout_constraintTop_toTopOf="@id/attachAFileIcon" />
+ 
++    <!-- D-pad: audio message attachment button in the overlay. -->
+     <ImageView
+         android:id="@+id/attachAnAudioMessageIcon"
+         android:layout_width="40dp"
+@@ -549,6 +589,12 @@
+         android:padding="10dp"
+         android:src="@android:drawable/ic_btn_speak_now"
+         android:visibility="visible"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusUp="@+id/attachAFileIcon"
++        android:nextFocusDown="@+id/gallery"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toTopOf="@id/gallery"
+         app:layout_constraintEnd_toEndOf="@id/attach"
+         app:layout_constraintStart_toStartOf="@id/attach"
+@@ -571,6 +617,7 @@
+         app:layout_constraintStart_toEndOf="@id/attachAnAudioMessageIcon"
+         app:layout_constraintTop_toTopOf="@id/attachAnAudioMessageIcon" />
+ 
++    <!-- D-pad: gallery (photo picker) button in the overlay. -->
+     <ImageView
+         android:id="@+id/gallery"
+         android:layout_width="40dp"
+@@ -583,6 +630,12 @@
+         android:padding="10dp"
+         android:src="@drawable/ic_insert_photo_black_24dp"
+         android:visibility="visible"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusUp="@+id/attachAnAudioMessageIcon"
++        android:nextFocusDown="@+id/camera"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toTopOf="@id/camera"
+         app:layout_constraintEnd_toEndOf="@id/attach"
+         app:layout_constraintStart_toStartOf="@id/attach"
+@@ -605,6 +658,8 @@
+         app:layout_constraintStart_toEndOf="@id/gallery"
+         app:layout_constraintTop_toTopOf="@id/gallery" />
+ 
++    <!-- D-pad: camera button — lowest item in overlay, nextFocusDown returns to
++         the attach/message compose bar. -->
+     <ImageView
+         android:id="@+id/camera"
+         android:layout_width="40dp"
+@@ -617,6 +672,12 @@
+         android:padding="10dp"
+         android:src="@drawable/ic_camera_alt_black_24dp"
+         android:visibility="visible"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusUp="@+id/gallery"
++        android:nextFocusDown="@+id/attach"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toTopOf="@id/attach"
+         app:layout_constraintEnd_toEndOf="@id/attach"
+         app:layout_constraintStart_toStartOf="@id/attach"
+@@ -639,6 +700,8 @@
+         app:layout_constraintStart_toEndOf="@id/gallery"
+         app:layout_constraintTop_toTopOf="@id/camera" />
+ 
++    <!-- D-pad: attach button is the leftmost compose-bar control.
++         nextFocusRight moves focus to the message text field. -->
+     <ImageView
+         android:id="@+id/attach"
+         android:layout_width="44dp"
+@@ -649,6 +712,11 @@
+         android:elevation="4dp"
+         android:padding="10dp"
+         android:src="@drawable/ic_add_black_24dp"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusRight="@+id/message"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
+         app:layout_constraintStart_toStartOf="parent"
+         tools:backgroundTint="@color/tools_theme"
+@@ -668,6 +736,7 @@
+         app:layout_constraintLeft_toLeftOf="parent"
+         app:layout_constraintRight_toRightOf="parent" />
+ 
++    <!-- D-pad: record audio message button replaces send when voice recording is active. -->
+     <ImageView
+         android:id="@+id/recordAudioMsg"
+         android:layout_width="44dp"
+@@ -677,6 +746,11 @@
+         android:contentDescription="@string/compose_record_audio_msg_cd"
+         android:padding="8dp"
+         android:src="@android:drawable/ic_btn_speak_now"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusLeft="@+id/message"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toBottomOf="@id/messageBackground"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:tint="?android:textColorSecondary" />
+@@ -725,6 +799,11 @@
+                 android:layout_gravity="center_vertical"
+                 android:layout_marginStart="8dp"
+                 android:layout_weight="0"
++                android:focusable="true"
++                android:focusableInTouchMode="false"
++                android:clickable="true"
++                android:foreground="@drawable/focus_selector"
++                android:nextFocusRight="@+id/audioMsgPlayerSeekBar"
+                 android:contentDescription="@string/compose_record_audio_msg_play_pause_cd"
+                 app:srcCompat="@drawable/exo_controls_play"
+                 app:tint="@color/tools_theme" />
+@@ -769,6 +848,11 @@
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="center_vertical"
+                 android:layout_weight="1"
++                android:focusable="true"
++                android:focusableInTouchMode="false"
++                android:clickable="true"
++                android:foreground="@drawable/focus_selector"
++                android:nextFocusRight="@+id/audioMsgRecord"
+                 android:contentDescription="@string/compose_record_audio_msg_abort_cd"
+                 app:layout_constraintStart_toStartOf="parent"
+                 app:srcCompat="@drawable/ic_delete_white_24dp"
+@@ -792,6 +876,11 @@
+                     android:layout_height="wrap_content"
+                     android:layout_gravity="center"
+                     android:background="?android:attr/selectableItemBackgroundBorderless"
++                    android:focusable="true"
++                    android:focusableInTouchMode="false"
++                    android:foreground="@drawable/focus_selector"
++                    android:nextFocusLeft="@+id/audioMsgAbort"
++                    android:nextFocusRight="@+id/audioMsgAttach"
+                     app:pauseIcon="@drawable/exo_icon_stop"
+                     app:playIcon="@android:drawable/ic_btn_speak_now"
+                     app:primaryColor="@color/textPrimaryDark" />
+@@ -803,6 +892,11 @@
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="center_vertical"
+                 android:layout_weight="1"
++                android:focusable="true"
++                android:focusableInTouchMode="false"
++                android:clickable="true"
++                android:foreground="@drawable/focus_selector"
++                android:nextFocusLeft="@+id/audioMsgRecord"
+                 android:contentDescription="@string/compose_record_audio_msg_attach_cd"
+                 android:rotation="135"
+                 app:layout_constraintEnd_toEndOf="parent"
+diff --git a/presentation/src/main/res/layout/contact_chip_detailed.xml b/presentation/src/main/res/layout/contact_chip_detailed.xml
+index 3155324b..58ca4a60 100755
+--- a/presentation/src/main/res/layout/contact_chip_detailed.xml
++++ b/presentation/src/main/res/layout/contact_chip_detailed.xml
+@@ -75,11 +75,15 @@
+         tools:textColor="@color/textTertiaryDark"
+         android:textDirection="ltr" />
+ 
++    <!-- D-pad: delete button in contact chip must be focusable for arrow-key access. -->
+     <ImageView
+         android:id="@+id/delete"
+         android:layout_width="56dp"
+         android:layout_height="56dp"
+         android:background="?attr/selectableItemBackground"
++        android:focusable="true"
++        android:focusableInTouchMode="false"
++        android:foreground="@drawable/focus_selector"
+         android:padding="16dp"
+         android:src="@drawable/ic_cancel_black_24dp"
+         app:layout_constraintEnd_toEndOf="parent"
+diff --git a/presentation/src/main/res/layout/contact_list_item.xml b/presentation/src/main/res/layout/contact_list_item.xml
+index fcfbdf64..f6d2a59f 100644
+--- a/presentation/src/main/res/layout/contact_list_item.xml
++++ b/presentation/src/main/res/layout/contact_list_item.xml
+@@ -17,12 +17,16 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root is focusable so arrow keys can navigate the contact picker list. -->
+ <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+-    android:background="?attr/selectableItemBackground">
++    android:background="?attr/selectableItemBackground"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <dev.octoshrimpy.quik.common.widget.QkTextView
+         android:id="@+id/index"
+diff --git a/presentation/src/main/res/layout/contacts_activity.xml b/presentation/src/main/res/layout/contacts_activity.xml
+index 0fa78a96..73d1e601 100644
+--- a/presentation/src/main/res/layout/contacts_activity.xml
++++ b/presentation/src/main/res/layout/contacts_activity.xml
+@@ -26,6 +26,7 @@
+     android:orientation="vertical"
+     tools:context="dev.octoshrimpy.quik.feature.compose.ComposeActivity">
+ 
++    <!-- D-pad: RecyclerView must be focusable so arrow keys can navigate the contact list. -->
+     <androidx.recyclerview.widget.RecyclerView
+         android:id="@+id/contacts"
+         android:layout_width="0dp"
+@@ -35,6 +36,8 @@
+         android:clipToPadding="false"
+         android:paddingTop="8dp"
+         android:paddingBottom="8dp"
++        android:focusable="true"
++        android:nextFocusUp="@+id/search"
+         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+@@ -73,6 +76,7 @@
+                 android:paddingStart="12dp"
+                 android:paddingEnd="12dp"
+                 android:textColorHint="?android:attr/textColorTertiary"
++                android:nextFocusDown="@+id/contacts"
+                 app:textSize="primary"
+                 tools:textSize="16sp" />
+ 
+diff --git a/presentation/src/main/res/layout/conversation_list_item.xml b/presentation/src/main/res/layout/conversation_list_item.xml
+index 71da1e96..e0467a5c 100644
+--- a/presentation/src/main/res/layout/conversation_list_item.xml
++++ b/presentation/src/main/res/layout/conversation_list_item.xml
+@@ -17,6 +17,11 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad / flip-phone: root is focusable so arrow keys can navigate the list.
++     focusableInTouchMode="false" avoids stealing focus during normal touch scrolling.
++     foreground draws the focus_selector border when this item is keyboard-selected.
++     nextFocusRight navigates to the compose FAB in the parent activity (set in xml
++     to provide a consistent escape route from the list). -->
+ <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+@@ -25,16 +30,19 @@
+     android:background="?attr/selectableItemBackground"
+     android:gravity="center_vertical"
+     android:orientation="horizontal"
+-    android:paddingStart="12dp"
+-    android:paddingTop="8dp"
+-    android:paddingEnd="16dp"
+-    android:paddingBottom="8dp"
++    android:paddingStart="8dp"
++    android:paddingTop="4dp"
++    android:paddingEnd="12dp"
++    android:paddingBottom="4dp"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector"
+     android:nextFocusRight="@+id/compose">
+ 
+     <dev.octoshrimpy.quik.common.widget.GroupAvatarView
+         android:id="@+id/avatars"
+-        android:layout_width="56dp"
+-        android:layout_height="56dp"
++        android:layout_width="44dp"
++        android:layout_height="44dp"
+         android:layout_gravity="top"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintStart_toStartOf="parent"
+diff --git a/presentation/src/main/res/layout/conversation_media_list_item.xml b/presentation/src/main/res/layout/conversation_media_list_item.xml
+index 5e3e8dde..6af809ca 100644
+--- a/presentation/src/main/res/layout/conversation_media_list_item.xml
++++ b/presentation/src/main/res/layout/conversation_media_list_item.xml
+@@ -17,10 +17,14 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: media thumbnail items must be focusable for arrow-key navigation. -->
+ <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+-    android:layout_height="wrap_content">
++    android:layout_height="wrap_content"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <dev.octoshrimpy.quik.common.widget.SquareImageView
+         android:id="@+id/thumbnail"
+diff --git a/presentation/src/main/res/layout/conversation_recipient_list_item.xml b/presentation/src/main/res/layout/conversation_recipient_list_item.xml
+index fb9424ad..7b2777fd 100644
+--- a/presentation/src/main/res/layout/conversation_recipient_list_item.xml
++++ b/presentation/src/main/res/layout/conversation_recipient_list_item.xml
+@@ -17,12 +17,16 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: conversation recipient items must be focusable for arrow-key navigation. -->
+ <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:background="?attr/selectableItemBackground"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector"
+     android:paddingStart="24dp"
+     android:paddingTop="8dp"
+     android:paddingEnd="16dp"
+diff --git a/presentation/src/main/res/layout/drawer_view.xml b/presentation/src/main/res/layout/drawer_view.xml
+index d97ec0d8..dcf40ee3 100644
+--- a/presentation/src/main/res/layout/drawer_view.xml
++++ b/presentation/src/main/res/layout/drawer_view.xml
+@@ -31,9 +31,11 @@
+         android:paddingTop="8dp"
+         android:paddingBottom="8dp">
+ 
++        <!-- D-pad: inbox row — first item; nextFocusDown goes to archived. -->
+         <LinearLayout
+             android:id="@+id/inbox"
+-            style="@style/DrawerRow">
++            style="@style/DrawerRow"
++            android:nextFocusDown="@+id/archived">
+ 
+             <ImageView
+                 android:id="@+id/inboxIcon"
+@@ -47,9 +49,12 @@
+ 
+         </LinearLayout>
+ 
++        <!-- D-pad: archived row. -->
+         <LinearLayout
+             android:id="@+id/archived"
+-            style="@style/DrawerRow">
++            style="@style/DrawerRow"
++            android:nextFocusUp="@+id/inbox"
++            android:nextFocusDown="@+id/backup">
+ 
+             <ImageView
+                 android:id="@+id/archivedIcon"
+@@ -70,9 +75,12 @@
+             android:layout_marginBottom="8dp"
+             android:background="?android:attr/divider" />
+ 
++        <!-- D-pad: backup row. -->
+         <LinearLayout
+             android:id="@+id/backup"
+-            style="@style/DrawerRow">
++            style="@style/DrawerRow"
++            android:nextFocusUp="@+id/archived"
++            android:nextFocusDown="@+id/scheduled">
+ 
+             <ImageView
+                 style="@style/DrawerIcon"
+@@ -85,9 +93,12 @@
+ 
+         </LinearLayout>
+ 
++        <!-- D-pad: scheduled row. -->
+         <LinearLayout
+             android:id="@+id/scheduled"
+-            style="@style/DrawerRow">
++            style="@style/DrawerRow"
++            android:nextFocusUp="@+id/backup"
++            android:nextFocusDown="@+id/blocking">
+ 
+             <ImageView
+                 style="@style/DrawerIcon"
+@@ -100,9 +111,12 @@
+ 
+         </LinearLayout>
+ 
++        <!-- D-pad: blocking row. -->
+         <LinearLayout
+             android:id="@+id/blocking"
+-            style="@style/DrawerRow">
++            style="@style/DrawerRow"
++            android:nextFocusUp="@+id/scheduled"
++            android:nextFocusDown="@+id/messageUtils">
+ 
+             <ImageView
+                 style="@style/DrawerIcon"
+@@ -115,9 +129,12 @@
+ 
+         </LinearLayout>
+ 
++        <!-- D-pad: message utils row. -->
+         <LinearLayout
+             android:id="@+id/messageUtils"
+-            style="@style/DrawerRow">
++            style="@style/DrawerRow"
++            android:nextFocusUp="@+id/blocking"
++            android:nextFocusDown="@+id/settings">
+ 
+             <ImageView
+                 style="@style/DrawerIcon"
+@@ -137,9 +154,12 @@
+             android:layout_marginBottom="8dp"
+             android:background="?android:attr/divider" />
+ 
++        <!-- D-pad: settings row. -->
+         <LinearLayout
+             android:id="@+id/settings"
+-            style="@style/DrawerRow">
++            style="@style/DrawerRow"
++            android:nextFocusUp="@+id/messageUtils"
++            android:nextFocusDown="@+id/invite">
+ 
+             <ImageView
+                 style="@style/DrawerIcon"
+@@ -167,9 +187,11 @@
+ 
+         </LinearLayout>
+ 
++        <!-- D-pad: invite row — last item; nextFocusUp returns to settings. -->
+         <LinearLayout
+             android:id="@+id/invite"
+-            style="@style/DrawerRow">
++            style="@style/DrawerRow"
++            android:nextFocusUp="@+id/settings">
+ 
+             <ImageView
+                 style="@style/DrawerIcon"
+diff --git a/presentation/src/main/res/layout/main_activity.xml b/presentation/src/main/res/layout/main_activity.xml
+index f9df0893..61a895db 100644
+--- a/presentation/src/main/res/layout/main_activity.xml
++++ b/presentation/src/main/res/layout/main_activity.xml
+@@ -24,9 +24,12 @@
+     android:layout_width="match_parent"
+     android:layout_height="match_parent">
+ 
++    <!-- D-pad: afterDescendants lets arrow keys move focus inside RecyclerView items
++         rather than consuming focus at the ConstraintLayout level. -->
+     <androidx.constraintlayout.widget.ConstraintLayout
+         android:layout_width="match_parent"
+-        android:layout_height="match_parent">
++        android:layout_height="match_parent"
++        android:descendantFocusability="afterDescendants">
+ 
+         <androidx.appcompat.widget.Toolbar
+             android:id="@+id/toolbar"
+@@ -61,7 +64,8 @@
+                 app:textSize="primary"
+                 tools:textSize="16sp"
+                 android:focusable="true"
+-                android:nextFocusRight="@+id/compose" />
++                android:nextFocusRight="@+id/compose"
++                android:nextFocusDown="@+id/recyclerView" />
+         </androidx.appcompat.widget.Toolbar>
+ 
+         <dev.octoshrimpy.quik.common.widget.QkTextView
+@@ -85,11 +89,16 @@
+             android:clipToPadding="false"
+             android:paddingTop="8dp"
+             android:paddingBottom="8dp"
++            android:focusable="true"
++            android:nextFocusUp="@+id/toolbarSearch"
+             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+             app:layout_constraintBottom_toTopOf="@id/bottom"
+             app:layout_constraintTop_toBottomOf="@id/toolbar"
+             tools:listitem="@layout/conversation_list_item" />
+ 
++        <!-- D-pad: compose FAB is focusable so the user can reach it with arrow keys.
++             nextFocusLeft moves focus back into the conversation list.
++             foreground draws the focus_selector border when selected by keyboard. -->
+         <ImageView
+             android:id="@+id/compose"
+             android:layout_width="56dp"
+@@ -100,6 +109,12 @@
+             android:elevation="8dp"
+             android:padding="16dp"
+             android:src="@drawable/ic_add_black_24dp"
++            android:focusable="true"
++            android:focusableInTouchMode="true"
++            android:clickable="true"
++            android:nextFocusLeft="@+id/recyclerView"
++            android:nextFocusUp="@+id/toolbarSearch"
++            android:foreground="@drawable/focus_selector"
+             app:layout_constraintBottom_toTopOf="@id/bottom"
+             app:layout_constraintEnd_toEndOf="parent"
+             tools:backgroundTint="@color/tools_theme"
+diff --git a/presentation/src/main/res/layout/main_permission_hint.xml b/presentation/src/main/res/layout/main_permission_hint.xml
+index e129638d..f72cfc4b 100644
+--- a/presentation/src/main/res/layout/main_permission_hint.xml
++++ b/presentation/src/main/res/layout/main_permission_hint.xml
+@@ -52,6 +52,7 @@
+         app:textSize="secondary"
+         tools:text="Make QUIK your default SMS app" />
+ 
++    <!-- D-pad: permission/default-SMS action button must be reachable by arrow keys. -->
+     <dev.octoshrimpy.quik.common.widget.QkTextView
+         android:id="@+id/snackbarButton"
+         android:layout_width="wrap_content"
+@@ -62,6 +63,11 @@
+         android:textAllCaps="true"
+         android:textColor="@color/tools_theme"
+         android:textStyle="bold"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusUp="@+id/recyclerView"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toBottomOf="@id/snackbarMessage"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintTop_toTopOf="@id/snackbarTitle"
+diff --git a/presentation/src/main/res/layout/menu_list_item.xml b/presentation/src/main/res/layout/menu_list_item.xml
+index 8b6bd1b7..879d9d09 100644
+--- a/presentation/src/main/res/layout/menu_list_item.xml
++++ b/presentation/src/main/res/layout/menu_list_item.xml
+@@ -17,13 +17,17 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root is focusable so arrow keys can navigate menu/action sheet items in dialogs. -->
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:background="?attr/selectableItemBackground"
+     android:gravity="center_vertical"
+-    android:orientation="horizontal">
++    android:orientation="horizontal"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <ImageView
+         android:id="@+id/check"
+diff --git a/presentation/src/main/res/layout/message_content_filter_list_item.xml b/presentation/src/main/res/layout/message_content_filter_list_item.xml
+index 554c9821..78b0ce91 100644
+--- a/presentation/src/main/res/layout/message_content_filter_list_item.xml
++++ b/presentation/src/main/res/layout/message_content_filter_list_item.xml
+@@ -17,11 +17,16 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root is focusable so arrow keys can navigate message content filter items. -->
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="48dp"
+-    android:orientation="horizontal">
++    android:orientation="horizontal"
++    android:background="?attr/selectableItemBackground"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <dev.octoshrimpy.quik.common.widget.QkTextView
+         android:id="@+id/filter"
+@@ -58,6 +63,7 @@
+         android:src="@drawable/ic_person_black_24dp"
+         android:tint="?android:attr/textColorSecondary" />
+ 
++    <!-- D-pad: remove (X) button is separately focusable so the user can delete a filter. -->
+     <ImageView
+         android:id="@+id/removeFilter"
+         android:layout_width="48dp"
+@@ -67,6 +73,10 @@
+         android:background="?android:attr/selectableItemBackground"
+         android:padding="12dp"
+         android:src="@drawable/ic_close_black_24dp"
+-        android:tint="?android:attr/textColorSecondary" />
++        android:tint="?android:attr/textColorSecondary"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:foreground="@drawable/focus_selector" />
+ 
+ </LinearLayout>
+\ No newline at end of file
+diff --git a/presentation/src/main/res/layout/message_list_item_in.xml b/presentation/src/main/res/layout/message_list_item_in.xml
+index 48488ae5..4b78031b 100644
+--- a/presentation/src/main/res/layout/message_list_item_in.xml
++++ b/presentation/src/main/res/layout/message_list_item_in.xml
+@@ -18,12 +18,16 @@
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
+ 
++<!-- D-pad: message items must be focusable for arrow-key navigation in conversation thread. -->
+ <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:background="?attr/selectableItemBackground"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector"
+     android:clipChildren="false"
+     android:clipToPadding="false">
+ 
+diff --git a/presentation/src/main/res/layout/message_list_item_out.xml b/presentation/src/main/res/layout/message_list_item_out.xml
+index a2561f6f..e8a6e21a 100644
+--- a/presentation/src/main/res/layout/message_list_item_out.xml
++++ b/presentation/src/main/res/layout/message_list_item_out.xml
+@@ -17,12 +17,16 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: message items must be focusable for arrow-key navigation in conversation thread. -->
+ <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+-    android:background="?attr/selectableItemBackground">
++    android:background="?attr/selectableItemBackground"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <LinearLayout
+         android:layout_width="match_parent"
+diff --git a/presentation/src/main/res/layout/mms_image_preview_list_item.xml b/presentation/src/main/res/layout/mms_image_preview_list_item.xml
+index 7cdd0785..045747ae 100644
+--- a/presentation/src/main/res/layout/mms_image_preview_list_item.xml
++++ b/presentation/src/main/res/layout/mms_image_preview_list_item.xml
+@@ -19,15 +19,14 @@
+   -->
+ <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+-    android:layout_width="280dp"
+-    android:layout_height="280dp"
++    android:layout_width="40dp"
++    android:layout_height="40dp"
+     android:layout_marginTop="2dp">
+ 
+     <dev.octoshrimpy.quik.common.widget.BubbleImageView
+         android:id="@+id/thumbnail"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+-        android:adjustViewBounds="true"
+         android:scaleType="centerCrop"
+         tools:src="@tools:sample/backgrounds/scenic" />
+ 
+diff --git a/presentation/src/main/res/layout/phone_number_list_item.xml b/presentation/src/main/res/layout/phone_number_list_item.xml
+index c176af94..c2af868e 100644
+--- a/presentation/src/main/res/layout/phone_number_list_item.xml
++++ b/presentation/src/main/res/layout/phone_number_list_item.xml
+@@ -17,11 +17,13 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root FrameLayout is the focus/click target for phone number picker items. -->
+ <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+-    android:layout_height="wrap_content">
++    android:layout_height="wrap_content"
++    android:foreground="@drawable/focus_selector">
+ 
+     <dev.octoshrimpy.quik.common.widget.RadioPreferenceView
+         android:id="@+id/number"
+diff --git a/presentation/src/main/res/layout/qk_dialog.xml b/presentation/src/main/res/layout/qk_dialog.xml
+index 3c57fcb7..be77eac3 100644
+--- a/presentation/src/main/res/layout/qk_dialog.xml
++++ b/presentation/src/main/res/layout/qk_dialog.xml
+@@ -55,6 +55,7 @@
+         tools:text="Moez Bhatti"
+         tools:visibility="visible" />
+ 
++    <!-- D-pad: list RecyclerView must be focusable so arrow keys can move through items. -->
+     <androidx.recyclerview.widget.RecyclerView
+         android:id="@+id/list"
+         android:layout_width="match_parent"
+@@ -62,6 +63,7 @@
+         android:paddingTop="8dp"
+         android:paddingBottom="8dp"
+         android:visibility="gone"
++        android:focusable="true"
+         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+         app:layout_constrainedHeight="true"
+         app:layout_constraintBottom_toTopOf="@id/positiveButton"
+@@ -70,6 +72,7 @@
+         tools:listitem="@layout/phone_number_list_item"
+         tools:visibility="visible" />
+ 
++    <!-- D-pad: positive (confirm) button. nextFocusLeft navigates to negativeButton. -->
+     <dev.octoshrimpy.quik.common.widget.QkTextView
+         android:id="@+id/positiveButton"
+         android:layout_width="wrap_content"
+@@ -81,6 +84,12 @@
+         android:textColor="?android:attr/textColorSecondary"
+         android:textStyle="bold"
+         android:visibility="gone"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusLeft="@+id/negativeButton"
++        android:nextFocusUp="@+id/list"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintTop_toBottomOf="@id/list"
+@@ -89,6 +98,7 @@
+         tools:text="Always"
+         tools:visibility="visible" />
+ 
++    <!-- D-pad: negative (cancel/dismiss) button. nextFocusRight navigates to positiveButton. -->
+     <dev.octoshrimpy.quik.common.widget.QkTextView
+         android:id="@+id/negativeButton"
+         android:layout_width="wrap_content"
+@@ -99,6 +109,12 @@
+         android:textColor="?android:attr/textColorSecondary"
+         android:textStyle="bold"
+         android:visibility="gone"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusRight="@+id/positiveButton"
++        android:nextFocusUp="@+id/list"
++        android:foreground="@drawable/focus_selector"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toStartOf="@id/positiveButton"
+         app:layout_constraintTop_toBottomOf="@id/list"
+diff --git a/presentation/src/main/res/layout/qkreply_activity.xml b/presentation/src/main/res/layout/qkreply_activity.xml
+index 859347c0..59002890 100644
+--- a/presentation/src/main/res/layout/qkreply_activity.xml
++++ b/presentation/src/main/res/layout/qkreply_activity.xml
+@@ -76,6 +76,7 @@
+         app:layout_constraintStart_toStartOf="@id/message"
+         app:layout_constraintTop_toTopOf="@id/message" />
+ 
++    <!-- D-pad: reply EditText — nextFocusRight moves to the send button. -->
+     <dev.octoshrimpy.quik.common.widget.QkEditText
+         android:id="@+id/message"
+         style="@style/TextPrimary"
+@@ -95,6 +96,7 @@
+         android:paddingEnd="16dp"
+         android:paddingBottom="12dp"
+         android:textColorHint="?android:attr/textColorTertiary"
++        android:nextFocusRight="@+id/send"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toStartOf="@id/sim"
+         app:layout_constraintStart_toStartOf="parent" />
+@@ -139,6 +141,7 @@
+         app:textSize="tertiary"
+         tools:text="108 / 2" />
+ 
++    <!-- D-pad: send button — focusable with nextFocusLeft back to the message field. -->
+     <ImageView
+         android:id="@+id/send"
+         android:layout_width="44dp"
+@@ -147,6 +150,11 @@
+         android:contentDescription="@string/compose_send_cd"
+         android:padding="10dp"
+         android:src="@drawable/ic_send_black_24dp"
++        android:focusable="true"
++        android:focusableInTouchMode="true"
++        android:clickable="true"
++        android:nextFocusLeft="@+id/message"
++        android:foreground="@drawable/focus_selector"
+         app:tint="?android:textColorSecondary"
+         app:layout_constraintBottom_toBottomOf="@id/message"
+         app:layout_constraintEnd_toEndOf="parent"
+diff --git a/presentation/src/main/res/layout/scheduled_message_list_item.xml b/presentation/src/main/res/layout/scheduled_message_list_item.xml
+index 77f1434c..3783634e 100644
+--- a/presentation/src/main/res/layout/scheduled_message_list_item.xml
++++ b/presentation/src/main/res/layout/scheduled_message_list_item.xml
+@@ -17,6 +17,7 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root is focusable so arrow keys can navigate the scheduled messages list. -->
+ <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+@@ -25,7 +26,10 @@
+     android:background="?attr/selectableItemBackground"
+     android:gravity="center_vertical"
+     android:orientation="horizontal"
+-    android:padding="12dp">
++    android:padding="12dp"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <dev.octoshrimpy.quik.common.widget.GroupAvatarView
+         android:id="@+id/avatars"
+diff --git a/presentation/src/main/res/layout/search_list_item.xml b/presentation/src/main/res/layout/search_list_item.xml
+index 92629f40..721cb5a6 100644
+--- a/presentation/src/main/res/layout/search_list_item.xml
++++ b/presentation/src/main/res/layout/search_list_item.xml
+@@ -17,6 +17,7 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: root is focusable so arrow keys can navigate search result items. -->
+ <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
+@@ -24,7 +25,10 @@
+     android:layout_height="wrap_content"
+     android:background="?attr/selectableItemBackground"
+     android:gravity="center_vertical"
+-    android:orientation="horizontal">
++    android:orientation="horizontal"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector">
+ 
+     <androidx.constraintlayout.widget.Group
+         android:id="@+id/resultsHeader"
+diff --git a/presentation/src/main/res/layout/swipe_actions_controller.xml b/presentation/src/main/res/layout/swipe_actions_controller.xml
+index 9ea0b878..91cab515 100644
+--- a/presentation/src/main/res/layout/swipe_actions_controller.xml
++++ b/presentation/src/main/res/layout/swipe_actions_controller.xml
+@@ -30,11 +30,16 @@
+         android:layout_height="wrap_content"
+         android:orientation="vertical">
+ 
++        <!-- D-pad: right swipe action row must be reachable by arrow keys. -->
+         <androidx.constraintlayout.widget.ConstraintLayout
+             android:id="@+id/right"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+-            android:foreground="?attr/selectableItemBackground">
++            android:focusable="true"
++            android:focusableInTouchMode="false"
++            android:clickable="true"
++            android:nextFocusDown="@+id/left"
++            android:foreground="@drawable/focus_selector">
+ 
+             <dev.octoshrimpy.quik.common.widget.QkTextView
+                 android:id="@+id/rightTitle"
+@@ -151,11 +156,16 @@
+             android:layout_height="1dp"
+             android:background="?android:attr/divider" />
+ 
++        <!-- D-pad: left swipe action row must be reachable by arrow keys. -->
+         <androidx.constraintlayout.widget.ConstraintLayout
+             android:id="@+id/left"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+-            android:foreground="?attr/selectableItemBackground">
++            android:focusable="true"
++            android:focusableInTouchMode="false"
++            android:clickable="true"
++            android:nextFocusUp="@+id/right"
++            android:foreground="@drawable/focus_selector">
+ 
+             <dev.octoshrimpy.quik.common.widget.QkTextView
+                 android:id="@+id/leftTitle"
+diff --git a/presentation/src/main/res/layout/tab_view.xml b/presentation/src/main/res/layout/tab_view.xml
+index 742c0891..305c43ec 100644
+--- a/presentation/src/main/res/layout/tab_view.xml
++++ b/presentation/src/main/res/layout/tab_view.xml
+@@ -17,6 +17,7 @@
+   ~ You should have received a copy of the GNU General Public License
+   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
+   -->
++<!-- D-pad: tab items must be focusable for arrow-key navigation between tabs. -->
+ <dev.octoshrimpy.quik.common.widget.QkTextView xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:id="@+id/label"
+@@ -24,6 +25,9 @@
+     android:layout_height="match_parent"
+     android:background="?attr/selectableItemBackground"
+     android:backgroundTint="@android:color/transparent"
++    android:focusable="true"
++    android:focusableInTouchMode="false"
++    android:foreground="@drawable/focus_selector"
+     android:gravity="center"
+     android:paddingStart="12dp"
+     android:paddingEnd="12dp"
+diff --git a/presentation/src/main/res/layout/theme_picker_hsv.xml b/presentation/src/main/res/layout/theme_picker_hsv.xml
+index 46a477d8..b1f5f6f6 100644
+--- a/presentation/src/main/res/layout/theme_picker_hsv.xml
++++ b/presentation/src/main/res/layout/theme_picker_hsv.xml
+@@ -101,11 +101,15 @@
+         android:background="?android:attr/divider"
+         app:layout_constraintBottom_toTopOf="@id/clear" />
+ 
++    <!-- D-pad: clear and apply buttons must be focusable for D-pad navigation. -->
+     <ImageView
+         android:id="@+id/clear"
+         android:layout_width="56dp"
+         android:layout_height="56dp"
+         android:background="?attr/selectableItemBackground"
++        android:focusable="true"
++        android:focusableInTouchMode="false"
++        android:foreground="@drawable/focus_selector"
+         android:padding="16dp"
+         android:src="@drawable/ic_cancel_black_24dp"
+         app:tint="?android:attr/textColorSecondary"
+@@ -120,6 +124,9 @@
+         android:layout_marginEnd="8dp"
+         android:background="@drawable/rounded_rectangle_2dp"
+         android:elevation="2dp"
++        android:focusable="true"
++        android:focusableInTouchMode="false"
++        android:foreground="@drawable/focus_selector"
+         android:text="@string/theme_apply"
+         app:layout_constraintBottom_toBottomOf="@id/clear"
+         app:layout_constraintEnd_toEndOf="parent"
+diff --git a/presentation/src/main/res/menu/compose.xml b/presentation/src/main/res/menu/compose.xml
+index c88f5315..e12e9fe4 100644
+--- a/presentation/src/main/res/menu/compose.xml
++++ b/presentation/src/main/res/menu/compose.xml
+@@ -32,7 +32,7 @@
+         android:icon="@drawable/ic_call_white_24dp"
+         android:title="@string/menu_call"
+         android:visible="false"
+-        app:showAsAction="always" />
++        app:showAsAction="never" />
+ 
+     <item
+         android:id="@+id/viewScheduledMessages"
+diff --git a/presentation/src/main/res/menu/conversation_info.xml b/presentation/src/main/res/menu/conversation_info.xml
+new file mode 100644
+index 00000000..4a4eaef9
+--- /dev/null
++++ b/presentation/src/main/res/menu/conversation_info.xml
+@@ -0,0 +1,11 @@
++<?xml version="1.0" encoding="utf-8"?>
++<menu xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto">
++
++    <item
++        android:id="@+id/call"
++        android:icon="@drawable/ic_call_white_24dp"
++        android:title="@string/menu_call"
++        app:showAsAction="always" />
++
++</menu>
+diff --git a/presentation/src/main/res/values/styles.xml b/presentation/src/main/res/values/styles.xml
+index c8e1eab0..80d97e55 100644
+--- a/presentation/src/main/res/values/styles.xml
++++ b/presentation/src/main/res/values/styles.xml
+@@ -46,7 +46,7 @@
+ 
+     <style name="Toolbar">
+         <item name="android:layout_width">match_parent</item>
+-        <item name="android:layout_height">56dp</item>
++        <item name="android:layout_height">48dp</item>
+ 
+         <!-- This needs to be set so that we can tint the toolbar and not change the background
+          resource. This is mainly so that QkReplyActivity can call setClipToOutline -->
+@@ -102,6 +102,8 @@
+         <item name="textSize">primary</item>
+     </style>
+ 
++    <!-- D-pad: focusable + clickable so arrow keys can land on drawer rows.
++         foreground draws the focus_selector border when the row is selected by keyboard. -->
+     <style name="DrawerRow">
+         <item name="android:layout_height">48dp</item>
+         <item name="android:layout_width">match_parent</item>
+@@ -109,6 +111,9 @@
+         <item name="android:gravity">center_vertical</item>
+         <item name="android:paddingStart">16dp</item>
+         <item name="android:paddingEnd">16dp</item>
++        <item name="android:focusable">true</item>
++        <item name="android:clickable">true</item>
++        <item name="android:foreground">@drawable/focus_selector</item>
+     </style>
+ 
+     <style name="DrawerText">
+-- 
+2.43.0
+
