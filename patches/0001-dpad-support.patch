@@ -1,4 +1,4 @@
-From d4c57131b8048e5d89c5b5c854d6260f61000cf0 Mon Sep 17 00:00:00 2001
+From e7c36bfa99593110a7f4bff085fc51cead0f1b20 Mon Sep 17 00:00:00 2001
 From: JMTDI <noreply@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 20:07:59 +0000
 Subject: [PATCH] Add full D-pad navigation support
@@ -475,7 +475,7 @@ index ab5eb828..9c9e3278 100644
      }
  
 diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoActivity.kt b/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoActivity.kt
-index 8970e304..e0ffd88d 100644
+index 8970e304..62cdf645 100644
 --- a/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoActivity.kt
 +++ b/presentation/src/main/java/com/moez/QKSMS/feature/conversationinfo/ConversationInfoActivity.kt
 @@ -19,15 +19,22 @@
@@ -489,14 +489,14 @@ index 8970e304..e0ffd88d 100644
  import com.bluelinelabs.conductor.RouterTransaction
  import dagger.android.AndroidInjection
 +import dev.octoshrimpy.quik.R
-+import dev.octoshrimpy.quik.common.Navigator
++import dev.octoshrimpy.quik.common.ExternalNavigator
  import dev.octoshrimpy.quik.common.base.QkThemedActivity
  import dev.octoshrimpy.quik.databinding.ContainerActivityBinding
 +import javax.inject.Inject
  
  class ConversationInfoActivity : QkThemedActivity() {
  
-+    @Inject lateinit var navigator: Navigator
++    @Inject lateinit var externalNavigator: ExternalNavigator
 +
      private lateinit var binding: ContainerActivityBinding
      private lateinit var router: Router
@@ -526,7 +526,7 @@ index 8970e304..e0ffd88d 100644
 +            val threadId = intent.extras?.getLong("threadId") ?: 0L
 +            conversationRepo.getConversation(threadId)
 +                ?.recipients?.firstOrNull()?.address
-+                ?.let { navigator.makePhoneCall(it) }
++                ?.let { externalNavigator.makePhoneCall(it) }
 +            return true
 +        }
 +        return super.onOptionsItemSelected(item)
