@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       upstream_ref:
-        description: Upstream branch or tag to patch (blank = latest release tag)
+        description: Upstream branch or tag to patch (blank = master)
         required: false
         default: ''
         type: string
@@ -24,9 +24,7 @@ jobs:
         id: ref
         run: |
           REF="${{ inputs.upstream_ref }}"
-          if [[ -z "$REF" ]]; then
-            REF=$(git ls-remote --tags --refs https://github.com/quik-sms/quik.git 'v*' | sed 's#.*refs/tags/##' | sort -V | tail -1)
-          fi
+          REF="${REF:-master}"
           echo "ref=$REF" >> "$GITHUB_OUTPUT"
           echo "tag=${REF//\//-}-dpad-$(date +%Y%m%d-%H%M)" >> "$GITHUB_OUTPUT"
 
