@@ -1,4 +1,4 @@
-# quik-dpad-patch
+# quik
 
 Patch set that adds full D-pad / keypad navigation to
 [quik-sms/quik](https://github.com/quik-sms/quik), applied automatically on top of upstream.
