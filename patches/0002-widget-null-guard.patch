@@ -1,0 +1,50 @@
+From a53ec1879061446da024246cbc066f036c1a2659 Mon Sep 17 00:00:00 2001
+From: JMTDI <noreply@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 22:37:39 +0000
+Subject: [PATCH] Don't crash when the device has no AppWidgetManager
+
+---
+ .../main/java/com/moez/QKSMS/manager/WidgetManagerImpl.kt    | 3 ++-
+ .../java/com/moez/QKSMS/feature/widget/WidgetProvider.kt     | 5 +++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/data/src/main/java/com/moez/QKSMS/manager/WidgetManagerImpl.kt b/data/src/main/java/com/moez/QKSMS/manager/WidgetManagerImpl.kt
+index 841325dd..c09cc3cd 100644
+--- a/data/src/main/java/com/moez/QKSMS/manager/WidgetManagerImpl.kt
++++ b/data/src/main/java/com/moez/QKSMS/manager/WidgetManagerImpl.kt
+@@ -58,7 +58,8 @@ class WidgetManagerImpl @Inject constructor(private val context: Context, prefs:
+     }
+ 
+     override fun updateTheme() {
+-        val ids = AppWidgetManager.getInstance(context)
++        // some devices (e.g. feature phones) have no AppWidgetManager at all
++        val ids = (AppWidgetManager.getInstance(context) ?: return)
+             .getAppWidgetIds(
+                 ComponentName(
+                     context.packageName,
+diff --git a/presentation/src/main/java/com/moez/QKSMS/feature/widget/WidgetProvider.kt b/presentation/src/main/java/com/moez/QKSMS/feature/widget/WidgetProvider.kt
+index 120b14f8..5d179336 100644
+--- a/presentation/src/main/java/com/moez/QKSMS/feature/widget/WidgetProvider.kt
++++ b/presentation/src/main/java/com/moez/QKSMS/feature/widget/WidgetProvider.kt
+@@ -71,7 +71,8 @@ class WidgetProvider : AppWidgetProvider() {
+      * Notify all the widgets that they should update their adapter data
+      */
+     private fun updateData(context: Context) {
+-        val appWidgetManager = AppWidgetManager.getInstance(context)
++        // some devices (e.g. feature phones) have no AppWidgetManager at all
++        val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context) ?: return
+         val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(context, WidgetProvider::class.java))
+ 
+         // We need to update all Mms appwidgets on the home screen.
+@@ -176,7 +177,7 @@ class WidgetProvider : AppWidgetProvider() {
+             )
+         )
+ 
+-        AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, remoteViews)
++        AppWidgetManager.getInstance(context)?.updateAppWidget(appWidgetId, remoteViews)
+     }
+ 
+ }
+-- 
+2.43.0
+
